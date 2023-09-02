@@ -1,0 +1,21 @@
+{
+    "apiPort":"",
+
+	"minLoginLen":0,
+	"minPasswordLen":0,
+
+	"accessTokenKey":"",
+	"accessTokenLifeTime":0,
+
+	"refreshTokenKey":"",
+    "refreshTokenLifeTime":0,
+    
+	"accessPartLen":0,
+
+	"postgresConfig":{
+		"login":"some_user",
+		"password":"some_password",
+		"ip":"db",
+		"port":"8080"
+	}
+}
