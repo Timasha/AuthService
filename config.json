@@ -1,5 +1,5 @@
 {
-    "apiPort":"",
+    "apiPort":"8080",
 
 	"minLoginLen":0,
 	"minPasswordLen":0,

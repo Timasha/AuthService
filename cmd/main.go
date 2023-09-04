@@ -33,7 +33,7 @@ func main() {
 
 		casesProvider *cases.CasesProvider = &cases.CasesProvider{}
 
-		handlersProvider *handlers.HandlersProvider
+		handlersProvider *handlers.HandlersProvider = &handlers.HandlersProvider{}
 	)
 	logger = zerolog.New(os.Stdout)
 

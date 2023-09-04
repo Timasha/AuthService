@@ -4,16 +4,16 @@ version: '3'
 services:
   auth:
     build: ./
-    restart: untill-stopped
+    restart: unless-stopped
     ports:
-      -"8080:8080"
-      -"8000-8050:8080"
+      - "8080:8080"
+      - "8000-8050:8080"
     depends_on:
       - db
   db:
     container_name: db
     image: postgres
-    restart: untill-stopped
+    restart: unless-stopped
     environment:
       POSTGRES_USER: some_user
       POSTGRES_PASSWORD: some_password

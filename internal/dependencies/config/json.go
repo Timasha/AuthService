@@ -51,7 +51,7 @@ func ReadJsonConfig(path string, logger zerolog.Logger) (*JSONConfig, error) {
 	if readErr != nil {
 		return nil, readErr
 	}
-	var config *JSONConfig
+	var config *JSONConfig = &JSONConfig{}
 
 	unmarshalErr := json.Unmarshal(fileData, config)
 
