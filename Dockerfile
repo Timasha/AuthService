@@ -10,7 +10,7 @@ RUN go build -o /build/main ./cmd/main.go
 
 FROM ubuntu
 
-COPY --from=BUILD /build/config.json /build/main /run/
+COPY --from=BUILD /build/config.json /build/main /build/migrations /run/
 
 EXPOSE 8080
 

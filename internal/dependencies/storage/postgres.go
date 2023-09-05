@@ -5,6 +5,8 @@ import (
 	"auth/internal/logic/models"
 	"context"
 	"errors"
+	"io"
+	"os"
 
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
@@ -76,5 +78,20 @@ func (p *PostgresUserStorage) DeleteUserByLogin(ctx context.Context, login strin
 	if err == pgx.ErrNoRows {
 		return errs.ErrUserNotExists{}
 	}
+	return err
+}
+
+func (p *PostgresUserStorage) MigrateUp(ctx context.Context, migrationsPath string) error {
+	file, openErr := os.Open(migrationsPath + "/user_storage_up.sql")
+	if openErr != nil {
+		return openErr
+	}
+	fileData, readErr := io.ReadAll(file)
+
+	if readErr != nil {
+		return readErr
+	}
+
+	err := p.Pool.QueryRow(ctx, string(fileData)).Scan()
 	return err
 }

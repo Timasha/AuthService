@@ -42,6 +42,8 @@ func main() {
 		logger.Fatal().Msg("Read config error: " + readConfigErr.Error())
 	}
 
+
+
 	connectStorageContext, connectStorageClose := context.WithTimeout(context.Background(), time.Minute)
 	defer connectStorageClose()
 
@@ -50,6 +52,19 @@ func main() {
 	if connectErr != nil {
 		logger.Fatal().Msg("Read config error: " + connectErr.Error())
 	}
+
+
+
+	migrateCtx, migrateClose := context.WithTimeout(context.Background(), time.Minute)
+	defer migrateClose()
+
+	migrateErr := userStorage.MigrateUp(migrateCtx, appConfig.MigrationsPath)
+	
+	if migrateErr != nil {
+		logger.Fatal().Msg("Migrate database error: " + migrateErr.Error())
+	}
+
+
 
 	tokensProvider.Init(appConfig.AccessTokenKey, appConfig.RefreshTokenKey, appConfig.AccessTokenLifeTime, appConfig.RefreshTokenLifeTime, appConfig.AccessPartLen)
 

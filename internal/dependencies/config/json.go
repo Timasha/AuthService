@@ -26,6 +26,7 @@ type JSONConfig struct {
 	AccessPartLen        int   `json:"accessPartLen"`
 
 	PostgresConfig storage.PostgresUserStorageConfig `json:"postgresConfig,omitempty"`
+	MigrationsPath string                            `json:"migrationsPath"`
 }
 
 func (j *JSONConfig) GetMinLoginLen() int {

@@ -25,6 +25,7 @@ func (c *CasesProvider) Init(config dependencies.UseCasesConfig, logger zerolog.
 	c.logic = logic
 }
 
+
 func (c *CasesProvider) RegisterUser(ctx context.Context, user models.User) error {
 	select {
 	case <-ctx.Done():

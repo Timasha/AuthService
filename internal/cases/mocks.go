@@ -38,6 +38,7 @@ func (t UserStorageMock) DeleteUserByLogin(ctx context.Context, login string) er
 	return nil
 }
 
+
 type TokensProviderMock struct {
 }
 
