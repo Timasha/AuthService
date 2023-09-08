@@ -11,7 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func (h *HandlersProvider) AuthenticateUserByLoginHandler() fiber.Handler {
+func (h *FiberHandlersProvider) AuthenticateUserByLoginHandler() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		body := c.Request().Body()
 		var (

@@ -11,7 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func (h *HandlersProvider) AuthorizeUserHandler() fiber.Handler {
+func (h *FiberHandlersProvider) AuthorizeUserHandler() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		body := c.Request().Body()
 		var (
@@ -26,7 +26,7 @@ func (h *HandlersProvider) AuthorizeUserHandler() fiber.Handler {
 			return nil
 		}
 
-		authErr := h.casesProvider.AuthorizeUser(h.ctx, req.AccessToken, req.Login)
+		uuid, authErr := h.casesProvider.AuthorizeUser(h.ctx, req.AccessToken, req.Login)
 		var authErrWithCode errsutil.AuthErr
 
 		errors.As(authErr, &authErrWithCode)
@@ -42,6 +42,7 @@ func (h *HandlersProvider) AuthorizeUserHandler() fiber.Handler {
 			c.Status(400).JSON(resp)
 			return nil
 		}
+		resp.Uuid = uuid
 		resp.ErrCode = errsutil.SuccessCode
 		c.Status(200).JSON(resp)
 		return nil

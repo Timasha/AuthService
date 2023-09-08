@@ -12,7 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func (h *HandlersProvider) RegisterUserHandler() fiber.Handler {
+func (h *FiberHandlersProvider) RegisterUserHandler() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		body := c.Request().Body()
 		var (

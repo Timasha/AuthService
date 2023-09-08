@@ -33,7 +33,7 @@ func main() {
 
 		casesProvider *cases.CasesProvider = &cases.CasesProvider{}
 
-		handlersProvider *handlers.HandlersProvider = &handlers.HandlersProvider{}
+		handlersProvider *handlers.FiberHandlersProvider = &handlers.FiberHandlersProvider{}
 	)
 	logger = zerolog.New(os.Stdout)
 
@@ -41,8 +41,6 @@ func main() {
 	if readConfigErr != nil {
 		logger.Fatal().Msg("Read config error: " + readConfigErr.Error())
 	}
-
-
 
 	connectStorageContext, connectStorageClose := context.WithTimeout(context.Background(), time.Minute)
 	defer connectStorageClose()
@@ -53,18 +51,14 @@ func main() {
 		logger.Fatal().Msg("Read config error: " + connectErr.Error())
 	}
 
-
-
 	migrateCtx, migrateClose := context.WithTimeout(context.Background(), time.Minute)
 	defer migrateClose()
 
 	migrateErr := userStorage.MigrateUp(migrateCtx, appConfig.MigrationsPath)
-	
+
 	if migrateErr != nil {
 		logger.Fatal().Msg("Migrate database error: " + migrateErr.Error())
 	}
-
-
 
 	tokensProvider.Init(appConfig.AccessTokenKey, appConfig.RefreshTokenKey, appConfig.AccessTokenLifeTime, appConfig.RefreshTokenLifeTime, appConfig.AccessPartLen)
 
@@ -77,5 +71,5 @@ func main() {
 
 	handlersProvider.Init(ctx, casesProvider)
 
-	api.Startup(ctx, handlersProvider, appConfig, logger)
+	api.FiberStartup(ctx, handlersProvider, appConfig, logger)
 }

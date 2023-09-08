@@ -30,11 +30,13 @@ func CasesMocks(t *testing.T) *cases.CasesProvider {
 	}
 
 	userStorage.CreateUser(context.Background(), models.User{
+		UserID:   "Some_UUID",
 		Login:    "SampleLogin",
 		Password: hashedPassword,
 	})
 	hashedPassword, err = hasher.Hash("SamplePassword2")
 	userStorage.CreateUser(context.Background(), models.User{
+		UserID:   "Some_UUID2",
 		Login:    "SampleLogin2",
 		Password: hashedPassword,
 	})
@@ -208,6 +210,7 @@ func TestCasesProvider_AuthorizeUser(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
+		wantUuid string
 		wantErr error
 	}{
 		{
@@ -217,6 +220,7 @@ func TestCasesProvider_AuthorizeUser(t *testing.T) {
 				accessToken: "access.SampleLogin.true",
 				login:       "SampleLogin",
 			},
+			wantUuid: "Some_UUID",
 			wantErr: nil,
 		},
 		{
@@ -267,8 +271,9 @@ func TestCasesProvider_AuthorizeUser(t *testing.T) {
 	}
 	for _, tCase := range tests {
 		t.Run(tCase.name, func(t *testing.T) {
-			err := casesProvider.AuthorizeUser(tCase.args.ctx, tCase.args.accessToken, tCase.args.login)
+			uuid, err := casesProvider.AuthorizeUser(tCase.args.ctx, tCase.args.accessToken, tCase.args.login)
 			assert.Equal(t, tCase.wantErr, err)
+			assert.Equal(t,tCase.wantUuid,uuid)
 		})
 	}
 }

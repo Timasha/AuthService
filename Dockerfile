@@ -10,10 +10,12 @@ RUN go build -o /build/main ./cmd/main.go
 
 FROM ubuntu
 
-COPY --from=BUILD /build/config.json /build/main /build/migrations /run/
+COPY --from=BUILD /build/ /run/
 
 EXPOSE 8080
 
 WORKDIR /run
+
+RUN ls
 
 ENTRYPOINT /run/main

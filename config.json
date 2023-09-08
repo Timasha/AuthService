@@ -16,7 +16,7 @@
 		"login":"some_user",
 		"password":"some_password",
 		"ip":"db",
-		"port":"8080"
+		"port":"5432"
 	},
 	"migrationsPath":"./migrations/postgres"
 }

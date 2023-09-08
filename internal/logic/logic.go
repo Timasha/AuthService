@@ -50,14 +50,17 @@ func (l *LogicProvider) AuthenticateUserByLogin(ctx context.Context, login strin
 	return access, refresh, createTokenErr
 }
 
-func (l *LogicProvider) AuthorizeUser(ctx context.Context, accessToken string, login string) error {
-	_, getErr := l.userStorage.GetUserByLogin(ctx, login)
+func (l *LogicProvider) AuthorizeUser(ctx context.Context, accessToken string, login string) (string, error) {
+	user, getErr := l.userStorage.GetUserByLogin(ctx, login)
 	if getErr != nil {
-		return getErr
+		return "", getErr
 	}
 
 	validErr := l.tokensProvider.ValidAccessToken(accessToken, login)
-	return validErr
+	if validErr != nil {
+		return "", validErr
+	}
+	return user.UserID, nil
 
 }
 

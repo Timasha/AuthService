@@ -25,7 +25,6 @@ func (c *CasesProvider) Init(config dependencies.UseCasesConfig, logger zerolog.
 	c.logic = logic
 }
 
-
 func (c *CasesProvider) RegisterUser(ctx context.Context, user models.User) error {
 	select {
 	case <-ctx.Done():
@@ -78,26 +77,26 @@ func (c *CasesProvider) AuthenticateUserByLogin(ctx context.Context, login, pass
 	}
 }
 
-func (c *CasesProvider) AuthorizeUser(ctx context.Context, accessToken, login string) error {
+func (c *CasesProvider) AuthorizeUser(ctx context.Context, accessToken, login string) (string, error) {
 	select {
 	case <-ctx.Done():
 		{
-			return errs.ErrServiceNotAvaliable{}
+			return "", errs.ErrServiceNotAvaliable{}
 		}
 	default:
 		{
 			if len(login) < c.config.GetMinLoginLen() {
-				return errs.ErrTooShortLoginOrPassword{}
+				return "", errs.ErrTooShortLoginOrPassword{}
 			}
-			err := c.logic.AuthorizeUser(ctx, accessToken, login)
+			uuid, err := c.logic.AuthorizeUser(ctx, accessToken, login)
 
 			if err == (logicErrs.ErrUserNotExists{}) || err == (logicErrs.ErrExpiredAccessToken{}) || err == (logicErrs.ErrInvalidAccessToken{}) {
-				return err
+				return "", err
 			} else if err != nil {
 				c.logger.Error().Msg("Internal authorize user error: " + err.Error())
-				return errs.ErrServiceInternal{}
+				return "", errs.ErrServiceInternal{}
 			}
-			return nil
+			return uuid, nil
 		}
 	}
 }

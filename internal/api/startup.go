@@ -10,11 +10,12 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func Startup(ctx context.Context, handlerProvider *handlers.HandlersProvider, apiConfig dependencies.ApiConfig, logger zerolog.Logger) {
+func FiberStartup(ctx context.Context, handlerProvider *handlers.FiberHandlersProvider, apiConfig dependencies.ApiConfig, logger zerolog.Logger) {
 	app := fiber.New()
 	app.Get("/authenticate", handlerProvider.AuthenticateUserByLoginHandler())
-	app.Post("register", handlerProvider.RegisterUserHandler())
+	app.Post("/register", handlerProvider.RegisterUserHandler())
 	app.Get("/authorize", handlerProvider.AuthorizeUserHandler())
+	app.Get("/refresh", handlerProvider.RefreshTokensHandler())
 	go func() {
 		app.ShutdownWithTimeout(time.Minute)
 	}()

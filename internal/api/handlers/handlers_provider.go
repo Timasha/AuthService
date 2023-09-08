@@ -5,12 +5,12 @@ import (
 	"context"
 )
 
-type HandlersProvider struct {
+type FiberHandlersProvider struct {
 	ctx           context.Context
 	casesProvider *cases.CasesProvider
 }
 
-func (h *HandlersProvider) Init(ctx context.Context, casesProvider *cases.CasesProvider) {
+func (h *FiberHandlersProvider) Init(ctx context.Context, casesProvider *cases.CasesProvider) {
 	h.ctx = ctx
 	h.casesProvider = casesProvider
 }

@@ -93,5 +93,8 @@ func (p *PostgresUserStorage) MigrateUp(ctx context.Context, migrationsPath stri
 	}
 
 	err := p.Pool.QueryRow(ctx, string(fileData)).Scan()
-	return err
+	if err != nil && err != pgx.ErrNoRows {
+		return err
+	}
+	return nil
 }
