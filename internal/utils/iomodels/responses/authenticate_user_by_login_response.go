@@ -1,9 +1,17 @@
 package responses
 
-type AuthenticateUserByLoginResponse struct {
-	Err     string `json:"error"`
-	ErrCode int    `json:"errorCode"`
+import "auth/internal/utils/errsutil"
 
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
+type AuthenticateUserByLoginResponse struct {
+	Err     string               `json:"error"`
+	ErrCode errsutil.AuthErrCode `json:"errorCode"`
+
+	OtpEnabled bool `json:"otpEnabled"`
+
+	IntermediateToken string `json:"IntermediateToken"`
+
+	AuthInfo struct {
+		AccessToken  string `json:"accessToken"`
+		RefreshToken string `json:"refreshtoken"`
+	} `json:"authInfo"`
 }

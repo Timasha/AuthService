@@ -2,7 +2,7 @@ package api
 
 import (
 	"auth/internal/api/dependencies"
-	"auth/internal/api/handlers"
+	"auth/internal/api/fiber/handlers"
 	"context"
 	"time"
 
@@ -16,7 +16,7 @@ func FiberStartup(ctx context.Context, handlerProvider *handlers.FiberHandlersPr
 	app.Post("/register", handlerProvider.RegisterUserHandler())
 	app.Get("/authorize", handlerProvider.AuthorizeUserHandler())
 	app.Get("/refresh", handlerProvider.RefreshTokensHandler())
-	go func() {
+	defer func() {
 		app.ShutdownWithTimeout(time.Minute)
 	}()
 

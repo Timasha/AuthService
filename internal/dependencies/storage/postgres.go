@@ -42,7 +42,7 @@ func Connect(ctx context.Context, conf PostgresUserStorageConfig) (*PostgresUser
 }
 
 func (p *PostgresUserStorage) CreateUser(ctx context.Context, user models.User) error {
-	err := p.Pool.QueryRow(ctx, "insert into users values($1, $2, $3);", user.UserID, user.Login, user.Password).Scan()
+	err := p.Pool.QueryRow(ctx, "insert into users values($1, $2, $3, $4, $5);", user.UserID, user.Login, user.Password, user.OtpEnabled, user.OtpKey).Scan()
 
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -66,7 +66,7 @@ func (p *PostgresUserStorage) GetUserByLogin(ctx context.Context, login string) 
 
 func (p *PostgresUserStorage) UpdateUserByLogin(ctx context.Context, login string, user models.User) error {
 	var retLogin string
-	err := p.Pool.QueryRow(ctx, "update users set UserID = $1, Login = $2, Password = $3 where Login = $4", user.UserID, user.Login, user.Password, login).Scan(&retLogin)
+	err := p.Pool.QueryRow(ctx, "update users set UserID = $1, Login = $2, Password = $3, OtpEnabled = $4, OtpKey = $5 where Login = $6", user.UserID, user.Login, user.Password, user.OtpEnabled, user.OtpKey, login).Scan(&retLogin)
 	if err == pgx.ErrNoRows {
 		return errs.ErrUserNotExists{}
 	}

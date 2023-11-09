@@ -8,6 +8,6 @@ func (e ErrServiceNotAvaliable) Error() string {
 	return "service not avaliable"
 }
 
-func (e ErrServiceNotAvaliable) ErrCode() int {
+func (e ErrServiceNotAvaliable) ErrCode() errsutil.AuthErrCode {
 	return errsutil.ErrServiceNotAvaliableCode
 }

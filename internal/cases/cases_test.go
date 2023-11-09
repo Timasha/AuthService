@@ -3,6 +3,7 @@ package cases_test
 import (
 	"auth/internal/cases"
 	casesErrs "auth/internal/cases/errs"
+	"auth/internal/cases/iomodels"
 	"auth/internal/dependencies/config"
 	"auth/internal/dependencies/password"
 	"auth/internal/dependencies/uuid"
@@ -55,64 +56,68 @@ func CasesMocks(t *testing.T) *cases.CasesProvider {
 func TestCasesProvider_RegisterUser(t *testing.T) {
 	casesProvider := CasesMocks(t)
 
-	type args struct {
-		ctx  context.Context
-		user models.User
-	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr error
+		name         string
+		args         iomodels.RegisterUserArgs
+		wantReturned iomodels.RegisterUserReturned
 	}{
 		{
 			name: "success1",
-			args: args{
-				ctx: context.Background(),
-				user: models.User{
+			args: iomodels.RegisterUserArgs{
+				Ctx: context.Background(),
+				User: models.User{
 					Login:    "SampleLogin3",
 					Password: "SamplePassword3",
 				},
 			},
-			wantErr: nil,
+			wantReturned: iomodels.RegisterUserReturned{
+				Err: nil,
+			},
 		},
 		{
 			name: "user_already_exists",
-			args: args{
-				ctx: context.Background(),
-				user: models.User{
+			args: iomodels.RegisterUserArgs{
+				Ctx: context.Background(),
+				User: models.User{
 					Login:    "SampleLogin",
 					Password: "SamplePasswordDiff",
 				},
 			},
-			wantErr: logicErrs.ErrUserAlreadyExists{},
+			wantReturned: iomodels.RegisterUserReturned{
+				Err: logicErrs.ErrUserAlreadyExists{},
+			},
 		},
 		{
 			name: "too_short_login",
-			args: args{
-				ctx: context.Background(),
-				user: models.User{
+			args: iomodels.RegisterUserArgs{
+				Ctx: context.Background(),
+				User: models.User{
 					Login:    "asd",
 					Password: "asdasdasdasd",
 				},
 			},
-			wantErr: casesErrs.ErrTooShortLoginOrPassword{},
+			wantReturned: iomodels.RegisterUserReturned{
+				Err: casesErrs.ErrTooShortLoginOrPassword{},
+			},
 		},
 		{
 			name: "too_short_password",
-			args: args{
-				ctx: context.Background(),
-				user: models.User{
+			args: iomodels.RegisterUserArgs{
+				Ctx: context.Background(),
+				User: models.User{
 					Login:    "asdasdasdasd",
 					Password: "asd",
 				},
 			},
-			wantErr: casesErrs.ErrTooShortLoginOrPassword{},
+			wantReturned: iomodels.RegisterUserReturned{
+				Err: casesErrs.ErrTooShortLoginOrPassword{},
+			},
 		},
 	}
 	for _, tCase := range tests {
 		t.Run(tCase.name, func(t *testing.T) {
-			err := casesProvider.RegisterUser(tCase.args.ctx, tCase.args.user)
-			assert.Equal(t, tCase.wantErr, err)
+			returned := casesProvider.RegisterUser(tCase.args)
+			assert.Equal(t, tCase.wantReturned, returned)
 		})
 	}
 }
@@ -120,80 +125,126 @@ func TestCasesProvider_RegisterUser(t *testing.T) {
 func TestCasesProvider_AuthenticateUserByLogin(t *testing.T) {
 	casesProvider := CasesMocks(t)
 
-	type args struct {
-		ctx      context.Context
-		login    string
-		password string
-	}
 	tests := []struct {
-		name        string
-		args        args
-		wantAccess  string
-		wantRefresh string
-		wantErr     error
+		name         string
+		args         iomodels.AuthenticateUserByLoginArgs
+		wantReturned iomodels.AuthenticateUserByLoginReturned
 	}{
 		{
 			name: "success1",
-			args: args{
-				ctx:      context.Background(),
-				login:    "SampleLogin",
-				password: "SamplePassword",
+			args: iomodels.AuthenticateUserByLoginArgs{
+				Ctx:      context.Background(),
+				Login:    "SampleLogin",
+				Password: "SamplePassword",
 			},
-			wantAccess:  "access.SampleLogin.true",
-			wantRefresh: "refresh.acces.true",
-			wantErr:     nil,
+			wantReturned: iomodels.AuthenticateUserByLoginReturned{
+				OtpEnabled:        false,
+				IntermediateToken: "",
+
+				AuthInfo: struct {
+					AccessToken  string
+					RefreshToken string
+				}{
+					AccessToken:  "access.SampleLogin.true",
+					RefreshToken: "refresh.acces.true",
+				},
+
+				Err: nil,
+			},
 		},
 		{
 			name: "success2",
-			args: args{
-				ctx:      context.Background(),
-				login:    "SampleLogin2",
-				password: "SamplePassword2",
+			args: iomodels.AuthenticateUserByLoginArgs{
+				Ctx:      context.Background(),
+				Login:    "SampleLogin2",
+				Password: "SamplePassword2",
 			},
-			wantAccess:  "access.SampleLogin2.true",
-			wantRefresh: "refresh.acces.true",
-			wantErr:     nil,
+			wantReturned: iomodels.AuthenticateUserByLoginReturned{
+				OtpEnabled:        false,
+				IntermediateToken: "",
+
+				AuthInfo: struct {
+					AccessToken  string
+					RefreshToken string
+				}{
+					AccessToken:  "access.SampleLogin2.true",
+					RefreshToken: "refresh.acces.true",
+				},
+
+				Err: nil,
+			},
 		},
 		{
 			name: "user_not_exists",
-			args: args{
-				ctx:      context.Background(),
-				login:    "SomeLoginExample",
-				password: "SomePassword",
+			args: iomodels.AuthenticateUserByLoginArgs{
+				Ctx:      context.Background(),
+				Login:    "SomeLoginExample",
+				Password: "SomePassword",
 			},
-			wantAccess:  "",
-			wantRefresh: "",
-			wantErr:     casesErrs.ErrInvalidLoginOrPassword{},
+			wantReturned: iomodels.AuthenticateUserByLoginReturned{
+				OtpEnabled:        false,
+				IntermediateToken: "",
+
+				AuthInfo: struct {
+					AccessToken  string
+					RefreshToken string
+				}{
+					AccessToken:  "",
+					RefreshToken: "",
+				},
+
+				Err: casesErrs.ErrInvalidLoginOrPassword{},
+			},
 		},
 		{
 			name: "too_short_login",
-			args: args{
-				ctx:      context.Background(),
-				login:    "ShortL",
-				password: "SamplePassword",
+			args: iomodels.AuthenticateUserByLoginArgs{
+				Ctx:      context.Background(),
+				Login:    "ShortL",
+				Password: "SamplePassword",
 			},
-			wantAccess:  "",
-			wantRefresh: "",
-			wantErr:     casesErrs.ErrTooShortLoginOrPassword{},
+			wantReturned: iomodels.AuthenticateUserByLoginReturned{
+				OtpEnabled:        false,
+				IntermediateToken: "",
+
+				AuthInfo: struct {
+					AccessToken  string
+					RefreshToken string
+				}{
+					AccessToken:  "",
+					RefreshToken: "",
+				},
+
+				Err: casesErrs.ErrTooShortLoginOrPassword{},
+			},
 		},
 		{
 			name: "too_short_password",
-			args: args{
-				ctx:      context.Background(),
-				login:    "SampleLogin",
-				password: "ShortP",
+			args: iomodels.AuthenticateUserByLoginArgs{
+				Ctx:      context.Background(),
+				Login:    "SampleLogin",
+				Password: "ShortP",
 			},
-			wantAccess:  "",
-			wantRefresh: "",
-			wantErr:     casesErrs.ErrTooShortLoginOrPassword{},
+			wantReturned: iomodels.AuthenticateUserByLoginReturned{
+				OtpEnabled:        false,
+				IntermediateToken: "",
+
+				AuthInfo: struct {
+					AccessToken  string
+					RefreshToken string
+				}{
+					AccessToken:  "",
+					RefreshToken: "",
+				},
+
+				Err: casesErrs.ErrTooShortLoginOrPassword{},
+			},
 		},
 	}
 	for _, tCase := range tests {
 		t.Run(tCase.name, func(t *testing.T) {
-			accessToken, refreshToken, err := casesProvider.AuthenticateUserByLogin(tCase.args.ctx, tCase.args.login, tCase.args.password)
-			assert.Equal(t, tCase.wantAccess, accessToken)
-			assert.Equal(t, tCase.wantRefresh, refreshToken)
-			assert.Equal(t, tCase.wantErr, err)
+			returned := casesProvider.AuthenticateUserByLogin(tCase.args)
+			assert.Equal(t, tCase.wantReturned, returned)
 		})
 	}
 }
@@ -202,212 +253,232 @@ func TestCasesProvider_AuthorizeUser(t *testing.T) {
 
 	casesProvider := CasesMocks(t)
 
-	type args struct {
-		ctx         context.Context
-		accessToken string
-		login       string
-	}
 	tests := []struct {
-		name    string
-		args    args
-		wantUuid string
-		wantErr error
+		name         string
+		args         iomodels.AuthorizeUserArgs
+		wantReturned iomodels.AuthorizeUserReturned
 	}{
 		{
 			name: "success1",
-			args: args{
-				ctx:         context.Background(),
-				accessToken: "access.SampleLogin.true",
-				login:       "SampleLogin",
+
+			args: iomodels.AuthorizeUserArgs{
+				Ctx:         context.Background(),
+				AccessToken: "access.SampleLogin.true",
+				Login:       "SampleLogin",
 			},
-			wantUuid: "Some_UUID",
-			wantErr: nil,
+			wantReturned: iomodels.AuthorizeUserReturned{
+				UserId: "Some_UUID",
+				Err:    nil,
+			},
 		},
 		{
 			name: "invalid_token1",
-			args: args{
-				ctx:         context.Background(),
-				accessToken: "refresh.SampleLogin.true",
-				login:       "SampleLogin",
+			args: iomodels.AuthorizeUserArgs{
+				Ctx:         context.Background(),
+				AccessToken: "refresh.SampleLogin.true",
+				Login:       "SampleLogin",
 			},
-			wantErr: logicErrs.ErrInvalidAccessToken{},
+			wantReturned: iomodels.AuthorizeUserReturned{
+				UserId: "",
+				Err:    logicErrs.ErrInvalidAccessToken{},
+			},
 		},
 		{
 			name: "invalid_token2",
-			args: args{
-				ctx:         context.Background(),
-				accessToken: "access.SampleLogin2.true",
-				login:       "SampleLogin",
+			args: iomodels.AuthorizeUserArgs{
+				Ctx:         context.Background(),
+				AccessToken: "access.SampleLogin2.true",
+				Login:       "SampleLogin",
 			},
-			wantErr: logicErrs.ErrInvalidAccessToken{},
+			wantReturned: iomodels.AuthorizeUserReturned{
+				UserId: "",
+				Err:    logicErrs.ErrInvalidAccessToken{},
+			},
 		},
 		{
 			name: "not_existing_user1",
-			args: args{
-				ctx:         context.Background(),
-				accessToken: "access.SampleLogin.true",
-				login:       "SampleNotExistingLogin",
+			args: iomodels.AuthorizeUserArgs{
+				Ctx:         context.Background(),
+				AccessToken: "access.SampleLogin.true",
+				Login:       "SampleNotExistingLogin",
 			},
-			wantErr: logicErrs.ErrUserNotExists{},
+			wantReturned: iomodels.AuthorizeUserReturned{
+				UserId: "",
+				Err:    logicErrs.ErrUserNotExists{},
+			},
 		},
 		{
 			name: "too_short_login",
-			args: args{
-				ctx:         context.Background(),
-				accessToken: "access.ShortL.true",
-				login:       "ShortL",
+			args: iomodels.AuthorizeUserArgs{
+				Ctx:         context.Background(),
+				AccessToken: "access.ShortL.true",
+				Login:       "ShortL",
 			},
-			wantErr: casesErrs.ErrTooShortLoginOrPassword{},
+			wantReturned: iomodels.AuthorizeUserReturned{
+				UserId: "",
+				Err:    casesErrs.ErrTooShortLoginOrPassword{},
+			},
 		},
 		{
 			name: "expired_token1",
-			args: args{
-				ctx:         context.Background(),
-				accessToken: "access.SampleLogin.false",
-				login:       "SampleLogin",
+			args: iomodels.AuthorizeUserArgs{
+				Ctx:         context.Background(),
+				AccessToken: "access.SampleLogin.false",
+				Login:       "SampleLogin",
 			},
-			wantErr: logicErrs.ErrExpiredAccessToken{},
+			wantReturned: iomodels.AuthorizeUserReturned{
+				UserId: "",
+				Err:    logicErrs.ErrExpiredAccessToken{},
+			},
 		},
 	}
 	for _, tCase := range tests {
 		t.Run(tCase.name, func(t *testing.T) {
-			uuid, err := casesProvider.AuthorizeUser(tCase.args.ctx, tCase.args.accessToken, tCase.args.login)
-			assert.Equal(t, tCase.wantErr, err)
-			assert.Equal(t,tCase.wantUuid,uuid)
+			returned := casesProvider.AuthorizeUser(tCase.args)
+			assert.Equal(t, tCase.wantReturned, returned)
 		})
 	}
 }
 
 func TestCasesProvider_RefreshTokens(t *testing.T) {
 	casesProvider := CasesMocks(t)
-	type args struct {
-		ctx          context.Context
-		refreshToken string
-		accessToken  string
-		login        string
-	}
+
 	tests := []struct {
-		name        string
-		args        args
-		wantAccess  string
-		wantRefresh string
-		wantErr     error
+		name         string
+		args         iomodels.RefreshTokensArgs
+		wantReturned iomodels.RefreshTokensReturned
 	}{
 		{
 			name: "success1",
-			args: args{
-				ctx:          context.Background(),
-				refreshToken: "refresh.acces.true",
-				accessToken:  "access.SampleLogin.true",
-				login:        "SampleLogin",
+			args: iomodels.RefreshTokensArgs{
+				Ctx:          context.Background(),
+				RefreshToken: "refresh.acces.true",
+				AccessToken:  "access.SampleLogin.true",
+				Login:        "SampleLogin",
 			},
-			wantAccess:  "access.SampleLogin.true",
-			wantRefresh: "refresh.acces.true",
-			wantErr:     nil,
+			wantReturned: iomodels.RefreshTokensReturned{
+				AccessToken:  "access.SampleLogin.true",
+				RefreshToken: "refresh.acces.true",
+				Err:          nil,
+			},
 		},
 		{
 			name: "success2",
-			args: args{
-				ctx:          context.Background(),
-				refreshToken: "refresh.acces.true",
-				accessToken:  "access.SampleLogin.false",
-				login:        "SampleLogin",
+			args: iomodels.RefreshTokensArgs{
+				Ctx:          context.Background(),
+				RefreshToken: "refresh.acces.true",
+				AccessToken:  "access.SampleLogin.false",
+				Login:        "SampleLogin",
 			},
-			wantAccess:  "access.SampleLogin.true",
-			wantRefresh: "refresh.acces.true",
-			wantErr:     nil,
+			wantReturned: iomodels.RefreshTokensReturned{
+				AccessToken:  "access.SampleLogin.true",
+				RefreshToken: "refresh.acces.true",
+				Err:          nil,
+			},
 		},
 		{
 			name: "too_short_login",
-			args: args{
-				ctx:          context.Background(),
-				refreshToken: "refresh.acces.true",
-				accessToken:  "access.ShortL.true",
-				login:        "ShortL",
+			args: iomodels.RefreshTokensArgs{
+				Ctx:          context.Background(),
+				RefreshToken: "refresh.acces.true",
+				AccessToken:  "access.ShortL.true",
+				Login:        "ShortL",
 			},
-			wantAccess:  "",
-			wantRefresh: "",
-			wantErr:     casesErrs.ErrTooShortLoginOrPassword{},
+			wantReturned: iomodels.RefreshTokensReturned{
+				AccessToken:  "",
+				RefreshToken: "",
+				Err:          casesErrs.ErrTooShortLoginOrPassword{},
+			},
 		},
 		{
 			name: "invalid_refresh1",
-			args: args{
-				ctx:          context.Background(),
-				refreshToken: "access.acces.true",
-				accessToken:  "access.SampleLogin.true",
-				login:        "SampleLogin",
+			args: iomodels.RefreshTokensArgs{
+				Ctx:          context.Background(),
+				RefreshToken: "access.acces.true",
+				AccessToken:  "access.SampleLogin.true",
+				Login:        "SampleLogin",
 			},
-			wantAccess:  "",
-			wantRefresh: "",
-			wantErr:     logicErrs.ErrInvalidRefreshToken{},
+			wantReturned: iomodels.RefreshTokensReturned{
+				AccessToken:  "",
+				RefreshToken: "",
+				Err:          logicErrs.ErrInvalidRefreshToken{},
+			},
 		},
 		{
 			name: "expired_refresh1",
-			args: args{
-				ctx:          context.Background(),
-				refreshToken: "refresh.acces.false",
-				accessToken:  "access.SampleLogin.true",
-				login:        "SampleLogin",
+			args: iomodels.RefreshTokensArgs{
+				Ctx:          context.Background(),
+				RefreshToken: "refresh.acces.false",
+				AccessToken:  "access.SampleLogin.true",
+				Login:        "SampleLogin",
 			},
-			wantAccess:  "",
-			wantRefresh: "",
-			wantErr:     logicErrs.ErrExpiredRefreshToken{},
+			wantReturned: iomodels.RefreshTokensReturned{
+				AccessToken:  "",
+				RefreshToken: "",
+				Err:          logicErrs.ErrExpiredRefreshToken{},
+			},
 		},
 		{
 			name: "invalid_refresh2",
-			args: args{
-				ctx:          context.Background(),
-				refreshToken: "refresh.acce.true",
-				accessToken:  "access.SampleLogin.true",
-				login:        "SampleLogin",
+			args: iomodels.RefreshTokensArgs{
+				Ctx:          context.Background(),
+				RefreshToken: "refresh.acce.true",
+				AccessToken:  "access.SampleLogin.true",
+				Login:        "SampleLogin",
 			},
-			wantAccess:  "",
-			wantRefresh: "",
-			wantErr:     logicErrs.ErrInvalidRefreshToken{},
+			wantReturned: iomodels.RefreshTokensReturned{
+				AccessToken:  "",
+				RefreshToken: "",
+				Err:          logicErrs.ErrInvalidRefreshToken{},
+			},
 		},
 		{
 			name: "invalid_access1",
-			args: args{
-				ctx:          context.Background(),
-				refreshToken: "refresh.refre.true",
-				accessToken:  "refresh.SampleLogin.true",
-				login:        "SampleLogin",
+			args: iomodels.RefreshTokensArgs{
+				Ctx:          context.Background(),
+				RefreshToken: "refresh.refre.true",
+				AccessToken:  "refresh.SampleLogin.true",
+				Login:        "SampleLogin",
 			},
-			wantAccess:  "",
-			wantRefresh: "",
-			wantErr:     logicErrs.ErrInvalidAccessToken{},
+			wantReturned: iomodels.RefreshTokensReturned{
+				AccessToken:  "",
+				RefreshToken: "",
+				Err:          logicErrs.ErrInvalidAccessToken{},
+			},
 		},
 		{
 			name: "invalid_access2",
-			args: args{
-				ctx:          context.Background(),
-				refreshToken: "refresh.refre.true",
-				accessToken:  "access.SampleLogin.true",
-				login:        "SampleLogin2",
+			args: iomodels.RefreshTokensArgs{
+				Ctx:          context.Background(),
+				RefreshToken: "refresh.refre.true",
+				AccessToken:  "access.SampleLogin.true",
+				Login:        "SampleLogin2",
 			},
-			wantAccess:  "",
-			wantRefresh: "",
-			wantErr:     logicErrs.ErrInvalidAccessToken{},
+			wantReturned: iomodels.RefreshTokensReturned{
+				AccessToken:  "",
+				RefreshToken: "",
+				Err:          logicErrs.ErrInvalidAccessToken{},
+			},
 		},
 		{
 			name: "user_not_exists",
-			args: args{
-				ctx:          context.Background(),
-				refreshToken: "refresh.refre.true",
-				accessToken:  "access.SampleLogin3.true",
-				login:        "SampleLogin3",
+			args: iomodels.RefreshTokensArgs{
+				Ctx:          context.Background(),
+				RefreshToken: "refresh.refre.true",
+				AccessToken:  "access.SampleLogin3.true",
+				Login:        "SampleLogin3",
 			},
-			wantAccess:  "",
-			wantRefresh: "",
-			wantErr:     logicErrs.ErrUserNotExists{},
+			wantReturned: iomodels.RefreshTokensReturned{
+				AccessToken:  "",
+				RefreshToken: "",
+				Err:          logicErrs.ErrUserNotExists{},
+			},
 		},
 	}
 	for _, tCase := range tests {
 		t.Run(tCase.name, func(t *testing.T) {
-			access, refresh, err := casesProvider.RefreshTokens(tCase.args.ctx, tCase.args.refreshToken, tCase.args.accessToken, tCase.args.login)
-			assert.Equal(t, tCase.wantAccess, access)
-			assert.Equal(t, tCase.wantRefresh, refresh)
-			assert.Equal(t, tCase.wantErr, err)
+			returned := casesProvider.RefreshTokens(tCase.args)
+			assert.Equal(t, tCase.wantReturned, returned)
 		})
 	}
 }

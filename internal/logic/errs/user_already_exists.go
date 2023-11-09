@@ -8,6 +8,6 @@ func (e ErrUserAlreadyExists) Error() string {
 	return "user already exists"
 }
 
-func (e ErrUserAlreadyExists) ErrCode() int {
+func (e ErrUserAlreadyExists) ErrCode() errsutil.AuthErrCode {
 	return errsutil.ErrUserAlreadyExistsCode
 }

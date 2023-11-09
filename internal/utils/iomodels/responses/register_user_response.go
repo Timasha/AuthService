@@ -1,6 +1,8 @@
 package responses
 
+import "auth/internal/utils/errsutil"
+
 type RegisterUserResponses struct {
-	Err     string `json:"error"`
-	ErrCode int    `json:"errorCode"`
+	Err     string               `json:"error"`
+	ErrCode errsutil.AuthErrCode `json:"errorCode"`
 }

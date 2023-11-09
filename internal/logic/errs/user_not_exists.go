@@ -8,6 +8,6 @@ func (e ErrUserNotExists) Error() string {
 	return "user not exists"
 }
 
-func (e ErrUserNotExists) ErrCode() int {
+func (e ErrUserNotExists) ErrCode() errsutil.AuthErrCode {
 	return errsutil.ErrUserNotExistsCode
 }

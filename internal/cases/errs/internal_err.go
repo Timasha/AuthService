@@ -8,6 +8,6 @@ func (e ErrServiceInternal) Error() string {
 	return "internal service error"
 }
 
-func (e ErrServiceInternal) ErrCode() int {
+func (e ErrServiceInternal) ErrCode() errsutil.AuthErrCode {
 	return errsutil.ErrServiceInternalCode
 }

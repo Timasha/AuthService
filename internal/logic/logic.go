@@ -3,8 +3,7 @@ package logic
 import (
 	"auth/internal/logic/dependencies"
 	"auth/internal/logic/errs"
-	"auth/internal/logic/models"
-	"context"
+	"auth/internal/logic/iomodels"
 )
 
 type LogicProvider struct {
@@ -12,6 +11,7 @@ type LogicProvider struct {
 	tokensProvider dependencies.TokensProvider
 	passwordHasher dependencies.PasswordHasher
 	uuidProvider   dependencies.UUIDProvider
+	otpGenerator   dependencies.OtpGenerator
 }
 
 func (l *LogicProvider) Init(userStorage dependencies.UserStorage, tokensProvider dependencies.TokensProvider,
@@ -22,68 +22,109 @@ func (l *LogicProvider) Init(userStorage dependencies.UserStorage, tokensProvide
 	l.uuidProvider = uuidProvider
 }
 
-func (l *LogicProvider) RegisterUser(ctx context.Context, user models.User) error {
-
-	user.UserID = l.uuidProvider.GenerateUUID()
+func (l *LogicProvider) RegisterUser(args iomodels.RegisterUserArgs) (returned iomodels.RegisterUserReturned) {
+	args.User.UserID = l.uuidProvider.GenerateUUID()
 	var hashErr error
-	user.Password, hashErr = l.passwordHasher.Hash(user.Password)
+	args.User.Password, hashErr = l.passwordHasher.Hash(args.User.Password)
 	if hashErr != nil {
-		return hashErr
+		returned.Err = hashErr
+		return
 	}
-	createErr := l.userStorage.CreateUser(ctx, user)
-	return createErr
+	createErr := l.userStorage.CreateUser(args.Ctx, args.User)
+	returned.Err = createErr
+	return
 }
 
-func (l *LogicProvider) AuthenticateUserByLogin(ctx context.Context, login string, password string) (string, string, error) {
-	user, getErr := l.userStorage.GetUserByLogin(ctx, login)
+func (l *LogicProvider) AuthenticateUserByLogin(args iomodels.AuthenticateUserByLoginArgs) (returned iomodels.AuthenticateUserByLoginReturned) {
+	user, getErr := l.userStorage.GetUserByLogin(args.Ctx, args.Login)
 
 	if getErr != nil {
-		return "", "", getErr
+		returned.Err = getErr
+		return
 	}
 
-	if !l.passwordHasher.Compare(password, user.Password) {
-		return "", "", errs.ErrInvalidPassword{}
+	if !l.passwordHasher.Compare(args.Password, user.Password) {
+		returned.Err = errs.ErrInvalidPassword{}
+		return
 	}
 
-	access, refresh, createTokenErr := l.tokensProvider.CreateTokens(login)
+	if user.OtpEnabled {
+		returned.OtpEnabled = true
 
-	return access, refresh, createTokenErr
+		returned.IntermediateToken, returned.Err = l.tokensProvider.CreateIntermediateToken(args.Login)
+
+		return
+	}
+
+	returned.AuthInfo.AccessToken, returned.AuthInfo.RefreshToken, returned.Err = l.tokensProvider.CreateTokens(args.Login)
+
+	return
 }
 
-func (l *LogicProvider) AuthorizeUser(ctx context.Context, accessToken string, login string) (string, error) {
-	user, getErr := l.userStorage.GetUserByLogin(ctx, login)
+func (l *LogicProvider) ContinueAuthenticateOtpUserByLogin(args iomodels.ContinueAuthenticateOtpUserByLoginArgs) (returned iomodels.ContinueAuthenticateOtpUserByLoginReturned) {
+	user, getErr := l.userStorage.GetUserByLogin(args.Ctx, args.Login)
+
 	if getErr != nil {
-		return "", getErr
+		returned.Err = getErr
+		return
 	}
 
-	validErr := l.tokensProvider.ValidAccessToken(accessToken, login)
+	validErr := l.tokensProvider.ValidIntermediateToken(args.IntermediateToken, args.Login)
+
 	if validErr != nil {
-		return "", validErr
+		returned.Err = validErr
+		return
 	}
-	return user.UserID, nil
+
+	if !l.otpGenerator.ValidOtp(args.OtpCode, user.OtpKey) {
+		returned.Err = errs.ErrInvalidOtp{}
+	}
+
+	returned.AuthInfo.AccessToken, returned.AuthInfo.RefreshToken, returned.Err = l.tokensProvider.CreateTokens(args.Login)
+
+	return
+}
+
+func (l *LogicProvider) AuthorizeUser(args iomodels.AuthorizeUserArgs) (returned iomodels.AuthorizeUserReturned) {
+	user, getErr := l.userStorage.GetUserByLogin(args.Ctx, args.Login)
+	if getErr != nil {
+		returned.Err = getErr
+		return
+	}
+
+	validErr := l.tokensProvider.ValidAccessToken(args.AccessToken, args.Login)
+	if validErr != nil {
+		returned.Err = validErr
+		return
+	}
+	returned.UserId = user.UserID
+	return
 
 }
 
-func (l *LogicProvider) RefreshTokens(ctx context.Context, accessToken, refreshToken, login string) (string, string, error) {
-	_, getErr := l.userStorage.GetUserByLogin(ctx, login)
+func (l *LogicProvider) RefreshTokens(args iomodels.RefreshTokensArgs) (returned iomodels.RefreshTokensReturned) {
+	_, getErr := l.userStorage.GetUserByLogin(args.Ctx, args.Login)
 
 	if getErr != nil {
-		return "", "", getErr
+		returned.Err = getErr
+		return
 	}
 
-	accessValidErr := l.tokensProvider.ValidAccessToken(accessToken, login)
+	accessValidErr := l.tokensProvider.ValidAccessToken(args.AccessToken, args.Login)
 
 	if accessValidErr != nil && accessValidErr != (errs.ErrExpiredAccessToken{}) {
-		return "", "", accessValidErr
+		returned.Err = accessValidErr
+		return
 	}
 
-	refreshValidErr := l.tokensProvider.ValidRefreshToken(refreshToken, accessToken)
+	refreshValidErr := l.tokensProvider.ValidRefreshToken(args.RefreshToken, args.AccessToken)
 
 	if refreshValidErr != nil {
-		return "", "", refreshValidErr
+		returned.Err = refreshValidErr
+		return
 	}
 
-	access, refresh, createTokenErr := l.tokensProvider.CreateTokens(login)
+	returned.AccessToken, returned.RefreshToken, returned.Err = l.tokensProvider.CreateTokens(args.Login)
 
-	return access, refresh, createTokenErr
+	return
 }

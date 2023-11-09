@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"auth/internal/cases/errs"
+	"auth/internal/cases/iomodels"
 	"auth/internal/logic/models"
 	"auth/internal/utils/errsutil"
 	"auth/internal/utils/iomodels/requests"
@@ -27,23 +28,26 @@ func (h *FiberHandlersProvider) RegisterUserHandler() fiber.Handler {
 			return nil
 		}
 
-		var user models.User = models.User{
-			Login:    req.Login,
-			Password: req.Password,
+		var args iomodels.RegisterUserArgs = iomodels.RegisterUserArgs{
+			Ctx: h.ctx,
+			User: models.User{
+				Login: req.Login,
+				Password: req.Password,
+			},
 		}
-		regErr := h.casesProvider.RegisterUser(h.ctx, user)
+		returned := h.casesProvider.RegisterUser(args)
 
 		var regErrWithCode errsutil.AuthErr
 
-		errors.As(regErr, &regErrWithCode)
+		errors.As(returned.Err, &regErrWithCode)
 
-		if regErr == (errs.ErrServiceInternal{}) || regErr == (errs.ErrServiceNotAvaliable{}) {
-			resp.Err = regErr.Error()
+		if returned.Err == (errs.ErrServiceInternal{}) || returned.Err == (errs.ErrServiceNotAvaliable{}) {
+			resp.Err = regErrWithCode.Error()
 			resp.ErrCode = regErrWithCode.ErrCode()
 			c.Status(500).JSON(resp)
 			return nil
-		} else if regErr != nil {
-			resp.Err = regErr.Error()
+		} else if returned.Err != nil {
+			resp.Err = regErrWithCode.Error()
 			resp.ErrCode = regErrWithCode.ErrCode()
 			c.Status(400).JSON(resp)
 			return nil

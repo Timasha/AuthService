@@ -9,6 +9,6 @@ func (e ErrExpiredAccessToken) Error() string {
 	return "access token is expired"
 }
 
-func (e ErrExpiredAccessToken) ErrCode()int{
+func (e ErrExpiredAccessToken) ErrCode() errsutil.AuthErrCode {
 	return errsutil.ErrExpiredAccessTokenCode
 }

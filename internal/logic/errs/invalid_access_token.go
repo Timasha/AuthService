@@ -8,6 +8,6 @@ func (e ErrInvalidAccessToken) Error() string {
 	return "invalid access token"
 }
 
-func (e ErrInvalidAccessToken) ErrCode() int {
+func (e ErrInvalidAccessToken) ErrCode() errsutil.AuthErrCode {
 	return errsutil.ErrInvalidAccessTokenCode
 }

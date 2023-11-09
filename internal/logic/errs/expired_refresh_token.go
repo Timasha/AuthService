@@ -8,6 +8,6 @@ func (e ErrExpiredRefreshToken) Error() string {
 	return "refresh token is expired"
 }
 
-func (e ErrExpiredRefreshToken) ErrCode() int {
+func (e ErrExpiredRefreshToken) ErrCode() errsutil.AuthErrCode {
 	return errsutil.ErrExpiredRefreshTokenCode
 }

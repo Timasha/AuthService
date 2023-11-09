@@ -3,11 +3,10 @@ package cases
 import (
 	"auth/internal/cases/dependencies"
 	"auth/internal/cases/errs"
+	"auth/internal/cases/iomodels"
 	"auth/internal/logic"
 	logicErrs "auth/internal/logic/errs"
-
-	"auth/internal/logic/models"
-	"context"
+	logicIomodels "auth/internal/logic/iomodels"
 
 	"github.com/rs/zerolog"
 )
@@ -25,103 +24,152 @@ func (c *CasesProvider) Init(config dependencies.UseCasesConfig, logger zerolog.
 	c.logic = logic
 }
 
-func (c *CasesProvider) RegisterUser(ctx context.Context, user models.User) error {
+func (c *CasesProvider) RegisterUser(args iomodels.RegisterUserArgs) (returned iomodels.RegisterUserReturned) {
 	select {
-	case <-ctx.Done():
+	case <-args.Ctx.Done():
 		{
-			return errs.ErrServiceNotAvaliable{}
+			returned.Err = errs.ErrServiceNotAvaliable{}
+			return
 		}
 	default:
 		{
-			if len(user.Login) < c.config.GetMinLoginLen() || len(user.Password) < c.config.GetMinPasswordLen() {
-				return errs.ErrTooShortLoginOrPassword{}
+			if len(args.User.Login) < c.config.GetMinLoginLen() || len(args.User.Password) < c.config.GetMinPasswordLen() {
+				returned.Err = errs.ErrTooShortLoginOrPassword{}
+				return
 			}
 
-			regErr := c.logic.RegisterUser(ctx, user)
+			var registerUserArgs logicIomodels.RegisterUserArgs = logicIomodels.RegisterUserArgs{
+				Ctx:  args.Ctx,
+				User: args.User,
+			}
+			registerUserReturned := c.logic.RegisterUser(registerUserArgs)
 
-			if regErr == (logicErrs.ErrUserAlreadyExists{}) {
-				return regErr
-			} else if regErr != nil {
+			if registerUserReturned.Err == (logicErrs.ErrUserAlreadyExists{}) {
+				returned.Err = registerUserReturned.Err
+				return
+			} else if registerUserReturned.Err != nil {
 				// ToDo: add tracing by token
-				c.logger.Error().Msg("Internal register user error: " + regErr.Error())
-				return errs.ErrServiceInternal{}
+				c.logger.Error().Msg("Internal register user error: " + registerUserReturned.Err.Error())
+				returned.Err = errs.ErrServiceInternal{}
+				return
 			}
-			return nil
+			return
 		}
 	}
 }
 
-func (c *CasesProvider) AuthenticateUserByLogin(ctx context.Context, login, password string) (string, string, error) {
+func (c *CasesProvider) AuthenticateUserByLogin(args iomodels.AuthenticateUserByLoginArgs) (returned iomodels.AuthenticateUserByLoginReturned) {
 	select {
-	case <-ctx.Done():
+	case <-args.Ctx.Done():
 		{
-			return "", "", errs.ErrServiceNotAvaliable{}
+			returned.Err = errs.ErrServiceNotAvaliable{}
+			return
 		}
 	default:
 		{
-			if len(login) < c.config.GetMinLoginLen() || len(password) < c.config.GetMinPasswordLen() {
-				return "", "", errs.ErrTooShortLoginOrPassword{}
+			if len(args.Login) < c.config.GetMinLoginLen() || len(args.Password) < c.config.GetMinPasswordLen() {
+				returned.Err = errs.ErrTooShortLoginOrPassword{}
+				return
 			}
 
-			accessToken, refreshToken, err := c.logic.AuthenticateUserByLogin(ctx, login, password)
+			var authenticateUserByLoginArgs logicIomodels.AuthenticateUserByLoginArgs = logicIomodels.AuthenticateUserByLoginArgs{
+				Ctx:      args.Ctx,
+				Login:    args.Login,
+				Password: args.Password,
+			}
 
-			if err == (logicErrs.ErrUserNotExists{}) || err == (logicErrs.ErrInvalidPassword{}) {
-				return "", "", errs.ErrInvalidLoginOrPassword{}
-			} else if err != nil {
+			authenticateUserByLoginReturned := c.logic.AuthenticateUserByLogin(authenticateUserByLoginArgs)
+
+			if authenticateUserByLoginReturned.Err == (logicErrs.ErrUserNotExists{}) || authenticateUserByLoginReturned.Err == (logicErrs.ErrInvalidPassword{}) {
+				returned.Err = errs.ErrInvalidLoginOrPassword{}
+				return
+			} else if authenticateUserByLoginReturned.Err != nil {
 				// ToDo: add tracing by token
-				c.logger.Error().Msg("Internal authenticate user by login error: " + err.Error())
-				return "", "", errs.ErrServiceInternal{}
+				c.logger.Error().Msg("Internal authenticate user by login error: " + authenticateUserByLoginReturned.Err.Error())
+				returned.Err = errs.ErrServiceInternal{}
+				return
 			}
-			return accessToken, refreshToken, nil
+			if authenticateUserByLoginReturned.OtpEnabled {
+				returned.IntermediateToken = authenticateUserByLoginReturned.IntermediateToken
+				returned.OtpEnabled = authenticateUserByLoginReturned.OtpEnabled
+			}
+			returned.AuthInfo.AccessToken = authenticateUserByLoginReturned.AuthInfo.AccessToken
+			returned.AuthInfo.RefreshToken = authenticateUserByLoginReturned.AuthInfo.RefreshToken
+			return
 		}
 	}
 }
 
-func (c *CasesProvider) AuthorizeUser(ctx context.Context, accessToken, login string) (string, error) {
+func (c *CasesProvider) AuthorizeUser(args iomodels.AuthorizeUserArgs) (returned iomodels.AuthorizeUserReturned) {
 	select {
-	case <-ctx.Done():
+	case <-args.Ctx.Done():
 		{
-			return "", errs.ErrServiceNotAvaliable{}
+			returned.Err = errs.ErrServiceNotAvaliable{}
+			return
 		}
 	default:
 		{
-			if len(login) < c.config.GetMinLoginLen() {
-				return "", errs.ErrTooShortLoginOrPassword{}
+			if len(args.Login) < c.config.GetMinLoginLen() {
+				returned.Err = errs.ErrTooShortLoginOrPassword{}
+				return
 			}
-			uuid, err := c.logic.AuthorizeUser(ctx, accessToken, login)
 
-			if err == (logicErrs.ErrUserNotExists{}) || err == (logicErrs.ErrExpiredAccessToken{}) || err == (logicErrs.ErrInvalidAccessToken{}) {
-				return "", err
-			} else if err != nil {
-				c.logger.Error().Msg("Internal authorize user error: " + err.Error())
-				return "", errs.ErrServiceInternal{}
+			var authorizeUserArgs logicIomodels.AuthorizeUserArgs = logicIomodels.AuthorizeUserArgs{
+				Ctx:         args.Ctx,
+				AccessToken: args.AccessToken,
+				Login:       args.Login,
 			}
-			return uuid, nil
+
+			authorizeUserReturned := c.logic.AuthorizeUser(authorizeUserArgs)
+
+			if authorizeUserReturned.Err == (logicErrs.ErrUserNotExists{}) || authorizeUserReturned.Err == (logicErrs.ErrExpiredAccessToken{}) || authorizeUserReturned.Err == (logicErrs.ErrInvalidAccessToken{}) {
+				returned.Err = authorizeUserReturned.Err
+				return
+			} else if authorizeUserReturned.Err != nil {
+				c.logger.Error().Msg("Internal authorize user error: " + authorizeUserReturned.Err.Error())
+				returned.Err = errs.ErrServiceInternal{}
+				return
+			}
+			returned.UserId = authorizeUserReturned.UserId
+			return
 		}
 	}
 }
 
-func (c *CasesProvider) RefreshTokens(ctx context.Context, refreshToken, accessToken, login string) (string, string, error) {
+func (c *CasesProvider) RefreshTokens(args iomodels.RefreshTokensArgs) (returned iomodels.RefreshTokensReturned) {
 	select {
-	case <-ctx.Done():
+	case <-args.Ctx.Done():
 		{
-			return "", "", errs.ErrServiceNotAvaliable{}
+			returned.Err = errs.ErrServiceNotAvaliable{}
+			return
 		}
 	default:
 		{
-			if len(login) < c.config.GetMinLoginLen() {
-				return "", "", errs.ErrTooShortLoginOrPassword{}
+			if len(args.Login) < c.config.GetMinLoginLen() {
+				returned.Err = errs.ErrTooShortLoginOrPassword{}
+				return
 			}
 
-			newAccess, newRefresh, err := c.logic.RefreshTokens(ctx, accessToken, refreshToken, login)
-
-			if err == (logicErrs.ErrExpiredRefreshToken{}) || err == (logicErrs.ErrInvalidRefreshToken{}) || err == (logicErrs.ErrUserNotExists{}) || err == (logicErrs.ErrInvalidAccessToken{}) {
-				return "", "", err
-			} else if err != nil {
-				c.logger.Error().Msg("Internal authorize user error: " + err.Error())
-				return "", "", errs.ErrServiceInternal{}
+			var refreshTokensArgs logicIomodels.RefreshTokensArgs = logicIomodels.RefreshTokensArgs{
+				Ctx:          args.Ctx,
+				AccessToken:  args.AccessToken,
+				RefreshToken: args.RefreshToken,
+				Login:        args.Login,
 			}
-			return newAccess, newRefresh, nil
+
+			refreshTokensReturned := c.logic.RefreshTokens(refreshTokensArgs)
+
+			if refreshTokensReturned.Err == (logicErrs.ErrExpiredRefreshToken{}) || refreshTokensReturned.Err == (logicErrs.ErrInvalidRefreshToken{}) || refreshTokensReturned.Err == (logicErrs.ErrUserNotExists{}) || refreshTokensReturned.Err == (logicErrs.ErrInvalidAccessToken{}) {
+				returned.Err = refreshTokensReturned.Err
+				return
+			} else if refreshTokensReturned.Err != nil {
+				returned.Err = errs.ErrServiceInternal{}
+				c.logger.Error().Msg("Internal authorize user error: " + refreshTokensReturned.Err.Error())
+				return
+			}
+			returned.AccessToken = refreshTokensReturned.AccessToken
+			returned.RefreshToken = refreshTokensReturned.RefreshToken
+			return
 		}
 	}
 }

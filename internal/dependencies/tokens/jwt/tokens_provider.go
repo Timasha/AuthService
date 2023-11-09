@@ -7,6 +7,9 @@ type TokensProvider struct {
 	RefreshTokenKey      string
 	RefreshTokenLifeTime int64
 	AccessPartLen        int
+
+	IntermediateTokenKey      string
+	IntermediateTokenLifeTime int64
 }
 
 func (t *TokensProvider) Init(accessTokenKey, refreshTokenKey string, accessTokenLifeTime, refreshTokenLifeTime int64, accessPartLen int) {

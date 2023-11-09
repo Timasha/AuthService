@@ -8,6 +8,6 @@ func (e ErrTooShortLoginOrPassword) Error() string {
 	return "too short login or password"
 }
 
-func (e ErrTooShortLoginOrPassword) ErrCode() int {
+func (e ErrTooShortLoginOrPassword) ErrCode() errsutil.AuthErrCode {
 	return errsutil.ErrTooShortLoginOrPasswordCode
 }

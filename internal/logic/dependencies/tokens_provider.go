@@ -15,4 +15,8 @@ type TokensProvider interface {
 	check relation with access token,
 	and return error if it was caused by something*/
 	ValidRefreshToken(refreshToken string, accessToken string) error
+
+	CreateIntermediateToken(login string) (string, error)
+
+	ValidIntermediateToken(strToken, login string) error
 }

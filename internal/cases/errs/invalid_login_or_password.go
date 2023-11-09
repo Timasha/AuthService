@@ -8,6 +8,6 @@ func (e ErrInvalidLoginOrPassword) Error() string {
 	return "invalid login or password"
 }
 
-func (e ErrInvalidLoginOrPassword) ErrCode() int {
+func (e ErrInvalidLoginOrPassword) ErrCode() errsutil.AuthErrCode {
 	return errsutil.ErrInvalidLoginOrPasswordCode
 }
