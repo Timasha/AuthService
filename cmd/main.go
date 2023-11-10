@@ -1,8 +1,8 @@
 package main
 
 import (
-	"auth/internal/api"
-	"auth/internal/api/handlers"
+	api "auth/internal/api/fiber"
+	handlers "auth/internal/api/fiber/handlers"
 	"auth/internal/cases"
 	"auth/internal/dependencies/config"
 	"auth/internal/dependencies/password"
@@ -29,10 +29,8 @@ func main() {
 		passwordHasher *password.BcryptPasswordHasher = &password.BcryptPasswordHasher{}
 		uuidProvider   *uuid.GoogleUUIDProvider       = &uuid.GoogleUUIDProvider{}
 
-		logicProvider *logic.LogicProvider = &logic.LogicProvider{}
-
-		casesProvider *cases.CasesProvider = &cases.CasesProvider{}
-
+		logicProvider    *logic.LogicProvider            = &logic.LogicProvider{}
+		casesProvider    *cases.CasesProvider            = &cases.CasesProvider{}
 		handlersProvider *handlers.FiberHandlersProvider = &handlers.FiberHandlersProvider{}
 	)
 	logger = zerolog.New(os.Stdout)
