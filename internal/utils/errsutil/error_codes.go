@@ -18,6 +18,9 @@ const (
 	ErrUserAlreadyExistsCode
 	ErrUserNotExistsCode
 	ErrInvalidOtpCode
+	ErrRoleHasNoAccessCode
+	ErrRoleAlreadyExistsCode
+	ErrRoleNotExistsCode
 )
 const (
 	ErrInvalidLoginOrPasswordCode AuthErrCode = iota + 201
@@ -25,4 +28,5 @@ const (
 )
 const (
 	ErrInputCode AuthErrCode = iota + 301
+	ErrWrongAuthMethodCode
 )

@@ -3,5 +3,6 @@ create table if not exists users (
     Login text UNIQUE,
     Password text,
     OtpEnabled boolean,
-    OtpKey text
+    OtpKey text,
+    RoleId bigserial REFERENCES roles (RoleId)
 );

@@ -6,5 +6,7 @@ type User struct {
 	Password string
 
 	OtpEnabled bool
-	OtpKey string
+	OtpKey     string
+
+	Role Role
 }

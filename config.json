@@ -18,5 +18,13 @@
 		"ip":"db",
 		"port":"5432"
 	},
-	"migrationsPath":"./migrations/postgres"
+	"migrationsPath":"./migrations/postgres",
+	"roles":[{
+		"roleId":1,
+		"roleName":"root"
+	},{
+		"roleId":2,
+		"roleName":"user"
+	}],
+	"defaultRoleId":2
 }

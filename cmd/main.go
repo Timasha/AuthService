@@ -1,73 +1,101 @@
 package main
 
 import (
-	api "auth/internal/api/fiber"
-	handlers "auth/internal/api/fiber/handlers"
+	"auth/internal/api"
 	"auth/internal/cases"
-	"auth/internal/dependencies/config"
-	"auth/internal/dependencies/password"
-	"auth/internal/dependencies/storage"
-	"auth/internal/dependencies/tokens/jwt"
-	"auth/internal/dependencies/uuid"
 	"auth/internal/logic"
+	"auth/internal/utils/config"
+	"auth/internal/utils/logger"
+	"auth/internal/utils/logger/logdrivers"
+	"auth/internal/utils/password"
+	"auth/internal/utils/storage"
+	"auth/internal/utils/tokens/jwt"
+	"auth/internal/utils/twofa"
+	"auth/internal/utils/uuid"
 	"context"
+	"io"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/rs/zerolog"
 )
 
 func main() {
 	var (
-		logger    zerolog.Logger
+		log       logger.Logger = logdrivers.NewZerologDriver([]io.Writer{os.Stdout})
 		appConfig *config.JSONConfig
 
-		userStorage    *storage.PostgresUserStorage   = &storage.PostgresUserStorage{}
-		tokensProvider *jwt.TokensProvider            = &jwt.TokensProvider{}
+		unitedStorage  *storage.PostgresStorage = storage.NewPostgresStorage()
+		tokensProvider *jwt.TokensProvider
 		passwordHasher *password.BcryptPasswordHasher = &password.BcryptPasswordHasher{}
 		uuidProvider   *uuid.GoogleUUIDProvider       = &uuid.GoogleUUIDProvider{}
+		otpGenerator   *twofa.DefaultOtp
 
-		logicProvider    *logic.LogicProvider            = &logic.LogicProvider{}
-		casesProvider    *cases.CasesProvider            = &cases.CasesProvider{}
-		handlersProvider *handlers.FiberHandlersProvider = &handlers.FiberHandlersProvider{}
+		//bodySerializer *body.JsonBodySerializer
+
+		logicProvider *logic.LogicProvider
+		casesProvider *cases.CasesProvider
+		authApi       *api.Auth
 	)
-	logger = zerolog.New(os.Stdout)
 
-	appConfig, readConfigErr := config.ReadJsonConfig("./config.json", logger)
+	appConfig, readConfigErr := config.ReadJsonConfig("./config.json", log)
 	if readConfigErr != nil {
-		logger.Fatal().Msg("Read config error: " + readConfigErr.Error())
+		log.Log(logger.LogMsg{
+			Time:     time.Now(),
+			LogLevel: logger.LogLevelFatal,
+			Msg:      "Read config error: " + readConfigErr.Error(),
+		})
+		return
 	}
 
 	connectStorageContext, connectStorageClose := context.WithTimeout(context.Background(), time.Minute)
 	defer connectStorageClose()
 
-	userStorage, connectErr := storage.Connect(connectStorageContext, appConfig.PostgresConfig)
+	connectErr := unitedStorage.Connect(connectStorageContext, appConfig.PostgresConfig)
 
 	if connectErr != nil {
-		logger.Fatal().Msg("Read config error: " + connectErr.Error())
+		log.Log(logger.LogMsg{
+			Time:     time.Now(),
+			LogLevel: logger.LogLevelFatal,
+			Msg:      "Connect to db error: " + connectErr.Error(),
+		})
+		return
 	}
 
 	migrateCtx, migrateClose := context.WithTimeout(context.Background(), time.Minute)
 	defer migrateClose()
 
-	migrateErr := userStorage.MigrateUp(migrateCtx, appConfig.MigrationsPath)
+	migrateErr := unitedStorage.MigrateUp(migrateCtx, appConfig.MigrationsPath)
 
 	if migrateErr != nil {
-		logger.Fatal().Msg("Migrate database error: " + migrateErr.Error())
+		log.Log(logger.LogMsg{
+			Time:     time.Now(),
+			LogLevel: logger.LogLevelFatal,
+			Msg:      "Migrate database error: " + migrateErr.Error(),
+		})
+		return
 	}
 
-	tokensProvider.Init(appConfig.AccessTokenKey, appConfig.RefreshTokenKey, appConfig.AccessTokenLifeTime, appConfig.RefreshTokenLifeTime, appConfig.AccessPartLen)
+	tokensProvider = jwt.New(appConfig.AccessTokenKey, appConfig.RefreshTokenKey, appConfig.AccessTokenLifeTime, appConfig.RefreshTokenLifeTime, appConfig.AccessPartLen)
 
-	logicProvider.Init(userStorage, tokensProvider, passwordHasher, uuidProvider)
+	logicProvider = logic.New(unitedStorage, unitedStorage, tokensProvider, passwordHasher, uuidProvider, otpGenerator)
 
-	casesProvider.Init(appConfig, logger, logicProvider)
+	casesProvider = cases.New(appConfig, log, logicProvider)
+
+	rolesCreatingTimeoutCtx, _ := context.WithTimeout(context.Background(), time.Second*15)
+
+	for i := 0; i < len(appConfig.Roles); i++ {
+		casesProvider.AddRole(cases.AddRoleArgs{
+			Ctx:  rolesCreatingTimeoutCtx,
+			Role: appConfig.Roles[i],
+		})
+	}
 
 	ctx, ctxClose := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer unitedStorage.Close()
 	defer ctxClose()
 
-	handlersProvider.Init(ctx, casesProvider)
+	authApi = api.New(ctx, casesProvider, appConfig /*bodySerializer,*/, log)
 
-	api.FiberStartup(ctx, handlersProvider, appConfig, logger)
+	authApi.Start()
 }

@@ -1,130 +1,129 @@
 package logic
 
 import (
-	"auth/internal/logic/dependencies"
-	"auth/internal/logic/errs"
-	"auth/internal/logic/iomodels"
+	"auth/internal/logic/models"
+	"auth/internal/utils/errsutil"
+	"context"
 )
 
 type LogicProvider struct {
-	userStorage    dependencies.UserStorage
-	tokensProvider dependencies.TokensProvider
-	passwordHasher dependencies.PasswordHasher
-	uuidProvider   dependencies.UUIDProvider
-	otpGenerator   dependencies.OtpGenerator
+	userStorage  UserStorage
+	rolesStorage RolesStorage
+
+	tokensProvider TokensProvider
+	passwordHasher PasswordHasher
+	uuidProvider   UUIDProvider
+	otpGenerator   OtpGenerator
 }
 
-func (l *LogicProvider) Init(userStorage dependencies.UserStorage, tokensProvider dependencies.TokensProvider,
-	passwordHasher dependencies.PasswordHasher, uuidProvider dependencies.UUIDProvider) {
-	l.userStorage = userStorage
-	l.tokensProvider = tokensProvider
-	l.passwordHasher = passwordHasher
-	l.uuidProvider = uuidProvider
-}
+func New(userStorage UserStorage, rolesStorage RolesStorage, tokensProvider TokensProvider,
+	passwordHasher PasswordHasher, uuidProvider UUIDProvider, otpGenerator OtpGenerator) (l *LogicProvider) {
+	l = &LogicProvider{
+		userStorage: userStorage,
+		rolesStorage: rolesStorage,
 
-func (l *LogicProvider) RegisterUser(args iomodels.RegisterUserArgs) (returned iomodels.RegisterUserReturned) {
-	args.User.UserID = l.uuidProvider.GenerateUUID()
-	var hashErr error
-	args.User.Password, hashErr = l.passwordHasher.Hash(args.User.Password)
-	if hashErr != nil {
-		returned.Err = hashErr
-		return
+		tokensProvider: tokensProvider,
+		passwordHasher: passwordHasher,
+		uuidProvider: uuidProvider,
+		otpGenerator: otpGenerator,
 	}
-	createErr := l.userStorage.CreateUser(args.Ctx, args.User)
-	returned.Err = createErr
 	return
 }
 
-func (l *LogicProvider) AuthenticateUserByLogin(args iomodels.AuthenticateUserByLoginArgs) (returned iomodels.AuthenticateUserByLoginReturned) {
-	user, getErr := l.userStorage.GetUserByLogin(args.Ctx, args.Login)
-
-	if getErr != nil {
-		returned.Err = getErr
-		return
-	}
-
-	if !l.passwordHasher.Compare(args.Password, user.Password) {
-		returned.Err = errs.ErrInvalidPassword{}
-		return
-	}
-
-	if user.OtpEnabled {
-		returned.OtpEnabled = true
-
-		returned.IntermediateToken, returned.Err = l.tokensProvider.CreateIntermediateToken(args.Login)
-
-		return
-	}
-
-	returned.AuthInfo.AccessToken, returned.AuthInfo.RefreshToken, returned.Err = l.tokensProvider.CreateTokens(args.Login)
-
-	return
+type UserStorage interface {
+	CreateUser(ctx context.Context, user models.User) error
+	GetUserByLogin(ctx context.Context, login string) (models.User, error)
+	UpdateUserByLogin(ctx context.Context, login string, user models.User) error
+	DeleteUserByLogin(ctx context.Context, login string) error
 }
 
-func (l *LogicProvider) ContinueAuthenticateOtpUserByLogin(args iomodels.ContinueAuthenticateOtpUserByLoginArgs) (returned iomodels.ContinueAuthenticateOtpUserByLoginReturned) {
-	user, getErr := l.userStorage.GetUserByLogin(args.Ctx, args.Login)
-
-	if getErr != nil {
-		returned.Err = getErr
-		return
+var (
+	ErrUserAlreadyExists errsutil.AuthErr = errsutil.AuthErr{
+		Msg:     "user already exists",
+		ErrCode: errsutil.ErrUserAlreadyExistsCode,
 	}
-
-	validErr := l.tokensProvider.ValidIntermediateToken(args.IntermediateToken, args.Login)
-
-	if validErr != nil {
-		returned.Err = validErr
-		return
+	ErrUserNotExists errsutil.AuthErr = errsutil.AuthErr{
+		Msg:     "user not exists",
+		ErrCode: errsutil.ErrUserNotExistsCode,
 	}
+)
 
-	if !l.otpGenerator.ValidOtp(args.OtpCode, user.OtpKey) {
-		returned.Err = errs.ErrInvalidOtp{}
-	}
-
-	returned.AuthInfo.AccessToken, returned.AuthInfo.RefreshToken, returned.Err = l.tokensProvider.CreateTokens(args.Login)
-
-	return
+type RolesStorage interface {
+	CreateRole(ctx context.Context, role models.Role) error
+	GetRoleById(ctx context.Context, roleId models.RoleId) (models.Role, error)
+	UpdateRoleById(ctx context.Context, roleId models.RoleId, role models.Role) error
+	DeleteRoleById(ctx context.Context, roleId models.RoleId) error
 }
 
-func (l *LogicProvider) AuthorizeUser(args iomodels.AuthorizeUserArgs) (returned iomodels.AuthorizeUserReturned) {
-	user, getErr := l.userStorage.GetUserByLogin(args.Ctx, args.Login)
-	if getErr != nil {
-		returned.Err = getErr
-		return
+var(
+	ErrRoleAlreadyExists errsutil.AuthErr = errsutil.AuthErr {
+		Msg: "role already exists",
+		ErrCode: errsutil.ErrRoleAlreadyExistsCode,
 	}
+	ErrRoleNotExists errsutil.AuthErr = errsutil.AuthErr {
+		Msg: "role not exists",
+		ErrCode: errsutil.ErrRoleNotExistsCode,
+	}	
+)
 
-	validErr := l.tokensProvider.ValidAccessToken(args.AccessToken, args.Login)
-	if validErr != nil {
-		returned.Err = validErr
-		return
-	}
-	returned.UserId = user.UserID
-	return
+type TokensProvider interface {
+	/* Implimentation should create access token based on login,
+	create refresh token based on access,
+	generate error if it was caused by something
+	and return these values */
+	CreateTokens(login string) (string, string, error)
 
+	/*Implementation should valid access token by checking if thats is expired or invalid by structure and return login and error*/
+	ValidAccessToken(token string) (string, error)
+
+	/*Implementation should valid refresh token by checking if it is expired,
+	check relation with access token,
+	and return error if it was caused by something*/
+	ValidRefreshToken(refreshToken string, accessToken string) error
+
+	CreateIntermediateToken(login string) (string, error)
+
+	ValidIntermediateToken(strToken string) (string, error)
 }
 
-func (l *LogicProvider) RefreshTokens(args iomodels.RefreshTokensArgs) (returned iomodels.RefreshTokensReturned) {
-	_, getErr := l.userStorage.GetUserByLogin(args.Ctx, args.Login)
-
-	if getErr != nil {
-		returned.Err = getErr
-		return
+var (
+	ErrExpiredAccessToken errsutil.AuthErr = errsutil.AuthErr{
+		Msg:     "access token is expired",
+		ErrCode: errsutil.ErrExpiredAccessTokenCode,
+	}
+	ErrExpiredIntermediateToken errsutil.AuthErr = errsutil.AuthErr{
+		Msg:     "intermediate token is expired",
+		ErrCode: errsutil.ErrExpiredIntermediateTokenCode,
+	}
+	ErrExpiredRefreshToken errsutil.AuthErr = errsutil.AuthErr{
+		Msg:     "refresh token is expired",
+		ErrCode: errsutil.ErrExpiredRefreshTokenCode,
 	}
 
-	accessValidErr := l.tokensProvider.ValidAccessToken(args.AccessToken, args.Login)
-
-	if accessValidErr != nil && accessValidErr != (errs.ErrExpiredAccessToken{}) {
-		returned.Err = accessValidErr
-		return
+	ErrInvalidAccessToken errsutil.AuthErr = errsutil.AuthErr{
+		Msg:     "invalid access token",
+		ErrCode: errsutil.ErrInvalidAccessTokenCode,
 	}
-
-	refreshValidErr := l.tokensProvider.ValidRefreshToken(args.RefreshToken, args.AccessToken)
-
-	if refreshValidErr != nil {
-		returned.Err = refreshValidErr
-		return
+	ErrInvalidIntermediateToken errsutil.AuthErr = errsutil.AuthErr{
+		Msg:     "invalid intermediate token",
+		ErrCode: errsutil.ErrInvalidIntermediateTokenCode,
 	}
+	ErrInvalidRefreshToken errsutil.AuthErr = errsutil.AuthErr{
+		Msg:     "invalid refresh token",
+		ErrCode: errsutil.ErrInvalidRefreshTokenCode,
+	}
+)
 
-	returned.AccessToken, returned.RefreshToken, returned.Err = l.tokensProvider.CreateTokens(args.Login)
+type PasswordHasher interface {
+	Hash(password string) (string, error)
+	Compare(password, hash string) bool
+}
 
-	return
+type UUIDProvider interface {
+	GenerateUUID() string
+}
+
+type OtpGenerator interface {
+	GenerateKeys(login string) (string, string, error)
+	ValidOtp(passcode string, key string) bool
 }
