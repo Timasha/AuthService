@@ -11,8 +11,8 @@ import (
 )
 
 type AuthorizeUserRequest struct {
-	AccessToken    string        `json:"accessToken"`
-	RequiredRoleId models.RoleId `json:"requiredRoleId"`
+	AccessToken    string        `json:"accessToken" validate:"required"`
+	RequiredRoleId models.RoleId `json:"requiredRoleId" validate:"required"`
 }
 
 type AuthorizeUserResponses struct {

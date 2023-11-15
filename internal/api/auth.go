@@ -32,6 +32,7 @@ func New(ctx context.Context, casesProvider *cases.CasesProvider, apiConfig ApiC
 
 func (a *Auth) Start() {
 	app := fiber.New()
+	app.Group("/", a.GetJsonMiddleware())
 	app.Post("/authenticate", a.GetAuthenticateUserByLoginHandler())
 	app.Post("/register", a.GetRegisterUserHandler())
 	app.Post("/authorize", a.GetAuthorizeUserHandler())

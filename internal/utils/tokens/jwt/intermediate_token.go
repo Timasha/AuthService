@@ -34,11 +34,16 @@ func (j *TokensProvider) ValidIntermediateToken(strToken string) (string, error)
 		return []byte(j.RefreshTokenKey), nil
 	})
 
-	claims, ok := token.Claims.(*IntermediateTokenClaims)
-
-	if !ok || parseErr == jwtErrs.ErrWrongSingingMethod || errors.Is(parseErr, jwt.ErrTokenMalformed) || errors.Is(parseErr, jwt.ErrTokenSignatureInvalid) || !token.Valid {
+	if parseErr == jwtErrs.ErrWrongSingingMethod || errors.Is(parseErr, jwt.ErrTokenMalformed) || errors.Is(parseErr, jwt.ErrTokenSignatureInvalid) {
 		return "", logic.ErrInvalidIntermediateToken
-	} else if errors.Is(parseErr, jwt.ErrTokenExpired) {
+	}
+
+	claims, ok := token.Claims.(*IntermediateTokenClaims)
+	if !ok || !token.Valid {
+		return "", logic.ErrInvalidIntermediateToken
+	}
+
+	if errors.Is(parseErr, jwt.ErrTokenExpired) {
 		return claims.Login, logic.ErrExpiredIntermediateToken
 	} else if parseErr != nil {
 		return "", parseErr

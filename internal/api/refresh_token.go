@@ -10,8 +10,8 @@ import (
 )
 
 type RefreshTokensRequest struct {
-	RefreshToken string `json:"refreshToken"`
-	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken" validate:"required"`
+	AccessToken  string `json:"accessToken" validate:"required"`
 }
 type RefreshTokensResponse struct {
 	BaseResponse

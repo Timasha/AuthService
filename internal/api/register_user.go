@@ -11,8 +11,8 @@ import (
 )
 
 type RegisterUserRequest struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
+	Login    string `json:"login" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 type RegisterUserResponses struct {

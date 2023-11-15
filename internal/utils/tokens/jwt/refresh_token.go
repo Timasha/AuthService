@@ -35,16 +35,20 @@ func (j *TokensProvider) ValidRefreshToken(refreshToken, accessToken string) err
 		return []byte(j.RefreshTokenKey), nil
 	})
 
-	if parseErr == jwtErrs.ErrWrongSingingMethod || errors.Is(parseErr, jwt.ErrTokenMalformed) || errors.Is(parseErr, jwt.ErrTokenSignatureInvalid) || !token.Valid {
+	if parseErr == jwtErrs.ErrWrongSingingMethod || errors.Is(parseErr, jwt.ErrTokenMalformed) || errors.Is(parseErr, jwt.ErrTokenSignatureInvalid) {
 		return logic.ErrInvalidRefreshToken
-	} else if errors.Is(parseErr, jwt.ErrTokenExpired) {
+	}
+
+	claims, ok := token.Claims.(*RefreshTokenClaims)
+	if !ok || strings.Compare(claims.AccessPart, accessToken[:j.AccessPartLen]) != 0 || !token.Valid {
+		return logic.ErrInvalidRefreshToken
+	}
+
+	if errors.Is(parseErr, jwt.ErrTokenExpired) {
 		return logic.ErrExpiredRefreshToken
 	} else if parseErr != nil {
 		return parseErr
 	}
 
-	if claims, ok := token.Claims.(*RefreshTokenClaims); !ok || strings.Compare(claims.AccessPart, accessToken[:j.AccessPartLen]) != 0 {
-		return logic.ErrInvalidRefreshToken
-	}
 	return nil
 }
