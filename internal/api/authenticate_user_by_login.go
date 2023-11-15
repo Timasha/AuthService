@@ -1,8 +1,8 @@
 package api
 
 import (
-	"auth/internal/cases"
-	"auth/internal/utils/errsutil"
+	"AuthService/internal/cases"
+	"AuthService/internal/utils/errsutil"
 	"encoding/json"
 	"errors"
 

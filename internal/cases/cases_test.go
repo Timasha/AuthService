@@ -1,13 +1,13 @@
 package cases_test
 
 import (
-	"auth/internal/cases"
-	"auth/internal/logic"
-	"auth/internal/logic/models"
-	"auth/internal/utils/config"
-	"auth/internal/utils/logger/logdrivers"
-	"auth/internal/utils/password"
-	"auth/internal/utils/uuid"
+	"AuthService/internal/cases"
+	"AuthService/internal/logic"
+	"AuthService/internal/logic/models"
+	"AuthService/internal/utils/config"
+	"AuthService/internal/utils/logger/logdrivers"
+	"AuthService/internal/utils/password"
+	"AuthService/internal/utils/uuid"
 	"context"
 	"io"
 	"os"

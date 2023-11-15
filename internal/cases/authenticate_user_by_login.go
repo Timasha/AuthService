@@ -1,8 +1,8 @@
 package cases
 
 import (
-	"auth/internal/logic"
-	"auth/internal/utils/logger"
+	"AuthService/internal/logic"
+	"AuthService/internal/utils/logger"
 	"context"
 	"time"
 )

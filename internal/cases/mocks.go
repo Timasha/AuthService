@@ -1,8 +1,8 @@
 package cases
 
 import (
-	"auth/internal/logic"
-	"auth/internal/logic/models"
+	"AuthService/internal/logic"
+	"AuthService/internal/logic/models"
 	"context"
 	"strings"
 )

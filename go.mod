@@ -1,4 +1,4 @@
-module auth
+module AuthService
 
 go 1.18
 

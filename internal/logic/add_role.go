@@ -1,7 +1,7 @@
 package logic
 
 import (
-	"auth/internal/logic/models"
+	"AuthService/internal/logic/models"
 	"context"
 )
 

@@ -1,7 +1,7 @@
 package logdrivers
 
 import (
-	"auth/internal/utils/logger"
+	"AuthService/internal/utils/logger"
 	"io"
 
 	"github.com/rs/zerolog"

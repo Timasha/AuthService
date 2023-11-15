@@ -1,7 +1,7 @@
 package logic
 
 import (
-	"auth/internal/utils/errsutil"
+	"AuthService/internal/utils/errsutil"
 	"context"
 )
 

@@ -1,9 +1,9 @@
 package config
 
 import (
-	"auth/internal/logic/models"
-	"auth/internal/utils/logger"
-	"auth/internal/utils/storage"
+	"AuthService/internal/logic/models"
+	"AuthService/internal/utils/logger"
+	"AuthService/internal/utils/storage"
 	"encoding/json"
 	"io"
 	"os"

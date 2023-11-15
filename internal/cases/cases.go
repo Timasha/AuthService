@@ -1,10 +1,10 @@
 package cases
 
 import (
-	"auth/internal/logic"
-	"auth/internal/logic/models"
-	"auth/internal/utils/errsutil"
-	"auth/internal/utils/logger"
+	"AuthService/internal/logic"
+	"AuthService/internal/logic/models"
+	"AuthService/internal/utils/errsutil"
+	"AuthService/internal/utils/logger"
 )
 
 type CasesProvider struct {

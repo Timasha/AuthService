@@ -1,8 +1,8 @@
 package jwt
 
 import (
-	"auth/internal/logic"
-	jwtErrs "auth/internal/utils/tokens/jwt/errs"
+	"AuthService/internal/logic"
+	jwtErrs "AuthService/internal/utils/tokens/jwt/errs"
 	"errors"
 	"time"
 

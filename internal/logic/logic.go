@@ -1,8 +1,8 @@
 package logic
 
 import (
-	"auth/internal/logic/models"
-	"auth/internal/utils/errsutil"
+	"AuthService/internal/logic/models"
+	"AuthService/internal/utils/errsutil"
 	"context"
 )
 

@@ -1,9 +1,9 @@
 package api
 
 import (
-	"auth/internal/cases"
-	"auth/internal/utils/errsutil"
-	"auth/internal/utils/logger"
+	"AuthService/internal/cases"
+	"AuthService/internal/utils/errsutil"
+	"AuthService/internal/utils/logger"
 	"context"
 	"time"
 
