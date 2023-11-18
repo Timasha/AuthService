@@ -22,6 +22,16 @@ func (t UserStorageMock) GetUserByLogin(ctx context.Context, login string) (mode
 	}
 	return t[login], nil
 }
+
+func (t UserStorageMock) GetUserByUserId(ctx context.Context,userId string)(models.User,error){
+	for _,user := range(t){
+		if user.UserID == userId{
+			return user,nil
+		}
+	}
+	return models.User{},logic.ErrUserNotExists
+}
+
 func (t UserStorageMock) UpdateUserByLogin(ctx context.Context, login string, user models.User) error {
 	if _, ok := t[login]; !ok {
 		return logic.ErrUserNotExists

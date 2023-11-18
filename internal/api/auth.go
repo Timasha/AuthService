@@ -15,16 +15,16 @@ type Auth struct {
 
 	casesProvider *cases.CasesProvider
 	apiConfig     ApiConfig
-	//bodySerializer BodySerializer
+	bodySerializer BodySerializer
 	logger logger.Logger
 }
 
-func New(ctx context.Context, casesProvider *cases.CasesProvider, apiConfig ApiConfig /*bodySerializer BodySerializer,*/, logger logger.Logger) (a *Auth) {
+func New(ctx context.Context, casesProvider *cases.CasesProvider, apiConfig ApiConfig,bodySerializer BodySerializer, logger logger.Logger) (a *Auth) {
 	a = &Auth{
 		ctx:           ctx,
 		casesProvider: casesProvider,
 		apiConfig:     apiConfig,
-		//bodySerializer: bodySerializer,
+		bodySerializer: bodySerializer,
 		logger: logger,
 	}
 	return
@@ -34,11 +34,18 @@ func (a *Auth) Start() {
 	app := fiber.New()
 	app.Group("/", a.GetJsonMiddleware())
 	app.Post("/authenticate", a.GetAuthenticateUserByLoginHandler())
+	app.Post("/authenticate/continue", a.GetContinueAuthenticateOtpUserByLoginHandler())
 	app.Post("/register", a.GetRegisterUserHandler())
 	app.Post("/authorize", a.GetAuthorizeUserHandler())
 	app.Post("/refresh", a.GetRefreshTokensHandler())
+
+	app.Group("/otp",a.GetAuthorizeMiddleware())
+
+	app.Post("/otp/enable",a.GetEnableOtpAuthenticationForUserHandler())
+	app.Post("/otp/disable",a.GetDisableOtpAuthenticationForUserHandler())
 	defer func() {
-		app.ShutdownWithTimeout(time.Minute)
+		<-a.ctx.Done()
+		app.Shutdown()
 	}()
 
 	a.logger.Log(logger.LogMsg{
@@ -48,19 +55,25 @@ func (a *Auth) Start() {
 	})
 }
 
-var ErrWrongAuthMethod errsutil.AuthErr = errsutil.AuthErr{
-	Msg:     "wrong auth method",
-	ErrCode: errsutil.ErrWrongAuthMethodCode,
-}
+var (
+	ErrWrongAuthorizationMethod errsutil.AuthErr = errsutil.AuthErr{
+		Msg:     "wrong authorization method",
+		ErrCode: errsutil.ErrWrongAuthorizeMethodCode,
+	}
+	ErrInvalidInput  errsutil.AuthErr = errsutil.AuthErr{
+		Msg: "cannot read input: ",
+		ErrCode: errsutil.ErrInvalidInputCode,
+	}
+)
 
 type ApiConfig interface {
 	GetApiPort() string
 }
 
-// type BodySerializer interface {
-// 	Unmarshal[T any](data []byte, serializableObject T) error
-// 	Marshal[T](serializableObject T) ([]byte, error)
-// }
+type BodySerializer interface {
+	Unmarshal(data []byte, serializableObject interface{}) error
+	Marshal(serializableObject interface{}) ([]byte, error)
+}
 
 type BaseResponse struct {
 	Err     string               `json:"error"`

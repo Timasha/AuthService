@@ -8,6 +8,7 @@ import (
 	"AuthService/internal/utils/logger"
 	"AuthService/internal/utils/logger/logdrivers"
 	"AuthService/internal/utils/password"
+	"AuthService/internal/utils/serializer/body"
 	"AuthService/internal/utils/storage"
 	"AuthService/internal/utils/tokens/jwt"
 	"AuthService/internal/utils/twofa"
@@ -31,7 +32,7 @@ func main() {
 		uuidProvider   *uuid.GoogleUUIDProvider       = &uuid.GoogleUUIDProvider{}
 		otpGenerator   *twofa.DefaultOtp
 
-		//bodySerializer *body.JsonBodySerializer
+		bodySerializer *body.JsonBodySerializer
 
 		logicProvider *logic.LogicProvider
 		casesProvider *cases.CasesProvider
@@ -76,7 +77,9 @@ func main() {
 		return
 	}
 
-	tokensProvider = jwt.New(appConfig.AccessTokenKey, appConfig.RefreshTokenKey, appConfig.AccessTokenLifeTime, appConfig.RefreshTokenLifeTime, appConfig.AccessPartLen)
+	tokensProvider = jwt.New(appConfig.AccessTokenKey, appConfig.RefreshTokenKey, appConfig.AccessTokenLifeTime, appConfig.RefreshTokenLifeTime, appConfig.AccessPartLen, appConfig.IntermediateTokenKey,appConfig.IntermediateTokenLifeTime)
+
+	otpGenerator = twofa.New(appConfig.OrganizationName)
 
 	logicProvider = logic.New(unitedStorage, unitedStorage, tokensProvider, passwordHasher, uuidProvider, otpGenerator)
 
@@ -95,7 +98,7 @@ func main() {
 	defer unitedStorage.Close()
 	defer ctxClose()
 
-	authApi = api.New(ctx, casesProvider, appConfig /*bodySerializer,*/, log)
+	authApi = api.New(ctx, casesProvider, appConfig, bodySerializer, log)
 
 	authApi.Start()
 }

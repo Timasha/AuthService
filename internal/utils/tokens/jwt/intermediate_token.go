@@ -19,7 +19,7 @@ func (j *TokensProvider) CreateIntermediateToken(login string) (string, error) {
 		Login: login,
 	}
 
-	claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Duration(j.IntermediateTokenLifeTime) * time.Second))
+	claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Duration(j.IntermediateTokenLifeTime) * time.Minute))
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 
@@ -36,17 +36,17 @@ func (j *TokensProvider) ValidIntermediateToken(strToken string) (string, error)
 
 	if parseErr == jwtErrs.ErrWrongSingingMethod || errors.Is(parseErr, jwt.ErrTokenMalformed) || errors.Is(parseErr, jwt.ErrTokenSignatureInvalid) {
 		return "", logic.ErrInvalidIntermediateToken
+	}else if parseErr != nil && !errors.Is(parseErr, jwt.ErrTokenExpired) {
+		return "", parseErr
 	}
 
 	claims, ok := token.Claims.(*IntermediateTokenClaims)
-	if !ok || !token.Valid {
+	if !ok {
 		return "", logic.ErrInvalidIntermediateToken
 	}
 
 	if errors.Is(parseErr, jwt.ErrTokenExpired) {
 		return claims.Login, logic.ErrExpiredIntermediateToken
-	} else if parseErr != nil {
-		return "", parseErr
 	}
 
 	return claims.Login, nil

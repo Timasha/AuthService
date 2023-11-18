@@ -1,16 +1,20 @@
 {
+	"organizationName":"",
+	
     "apiPort":"8080",
 
-	"minLoginLen":0,
-	"minPasswordLen":0,
+	"minLoginLen":5,
+	"minPasswordLen":5,
 
 	"accessTokenKey":"",
-	"accessTokenLifeTime":0,
+	"accessTokenLifeTime":60,
 
 	"refreshTokenKey":"",
-    "refreshTokenLifeTime":0,
-    
-	"accessPartLen":0,
+    "refreshTokenLifeTime":24,
+	"accessPartLen":5,
+
+	"intermediateTokenKey":"",
+	"intermediateTokenLifetime":5,
 
 	"postgresConfig":{
 		"login":"some_user",

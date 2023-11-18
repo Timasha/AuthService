@@ -3,8 +3,8 @@ package errsutil
 type AuthErrCode int
 
 const (
-	ErrServiceInternalCode AuthErrCode = iota
-	SuccessCode
+	SuccessCode AuthErrCode = iota
+	ErrServiceInternalCode 
 	ErrServiceNotAvaliableCode
 )
 const (
@@ -21,12 +21,14 @@ const (
 	ErrRoleHasNoAccessCode
 	ErrRoleAlreadyExistsCode
 	ErrRoleNotExistsCode
+	ErrOtpAlreadyEnabledCode
+	ErrOtpAlreadyDisabledCode
 )
 const (
 	ErrInvalidLoginOrPasswordCode AuthErrCode = iota + 201
 	ErrTooShortLoginOrPasswordCode
 )
 const (
-	ErrInputCode AuthErrCode = iota + 301
-	ErrWrongAuthMethodCode
+	ErrInvalidInputCode AuthErrCode = iota + 301
+	ErrWrongAuthorizeMethodCode
 )

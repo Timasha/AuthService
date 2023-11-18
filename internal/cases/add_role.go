@@ -18,33 +18,23 @@ type AddRoleReturned struct {
 }
 
 func (c *CasesProvider) AddRole(args AddRoleArgs) (returned AddRoleReturned) {
-	select {
-	case <-args.Ctx.Done():
-		{
-			returned.Err = ErrServiceNotAvaliable
-			return
-		}
-	default:
-		{
-			var logicArgs logic.AddRoleArgs = logic.AddRoleArgs{
-				Ctx:  args.Ctx,
-				Role: args.Role,
-			}
-			logicReturned := c.logic.AddRole(logicArgs)
-			if logicReturned.Err == logic.ErrRoleAlreadyExists {
-				returned.Err = logicReturned.Err
-				return
-			} else if logicReturned.Err != nil {
-				c.logger.Log(logger.LogMsg{
-					Time:     time.Now(),
-					LogLevel: logger.LogLevelError,
-					Msg:      "Internal add role error: " + logicReturned.Err.Error(),
-				})
-				returned.Err = ErrServiceInternal
-				return
-			}
-
-			return
-		}
+	var logicArgs logic.AddRoleArgs = logic.AddRoleArgs{
+		Ctx:  args.Ctx,
+		Role: args.Role,
 	}
+	logicReturned := c.logic.AddRole(logicArgs)
+	if logicReturned.Err == logic.ErrRoleAlreadyExists {
+		returned.Err = logicReturned.Err
+		return
+	} else if logicReturned.Err != nil {
+		c.logger.Log(logger.LogMsg{
+			Time:     time.Now(),
+			LogLevel: logger.LogLevelError,
+			Msg:      "Internal add role error: " + logicReturned.Err.Error(),
+		})
+		returned.Err = ErrServiceInternal
+		return
+	}
+
+	return
 }

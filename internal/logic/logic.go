@@ -33,6 +33,7 @@ func New(userStorage UserStorage, rolesStorage RolesStorage, tokensProvider Toke
 type UserStorage interface {
 	CreateUser(ctx context.Context, user models.User) error
 	GetUserByLogin(ctx context.Context, login string) (models.User, error)
+	GetUserByUserId(ctx context.Context, userId string)(models.User,error)
 	UpdateUserByLogin(ctx context.Context, login string, user models.User) error
 	DeleteUserByLogin(ctx context.Context, login string) error
 }

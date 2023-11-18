@@ -16,12 +16,12 @@ type RefreshTokenClaims struct {
 }
 
 func (j *TokensProvider) CreateRefreshToken(accessToken string) (string, error) {
+	accessParts := strings.Split(accessToken,".")
 	var claims RefreshTokenClaims = RefreshTokenClaims{
-		AccessPart: accessToken[:j.AccessPartLen],
+		AccessPart: accessParts[2][:j.AccessPartLen],
 	}
 
-	claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Duration(j.RefreshTokenLifeTime) * time.Hour))
-
+	claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(j.RefreshTokenLifeTime)))
 	token := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
 
 	return token.SignedString([]byte(j.RefreshTokenKey))
@@ -39,15 +39,25 @@ func (j *TokensProvider) ValidRefreshToken(refreshToken, accessToken string) err
 		return logic.ErrInvalidRefreshToken
 	}
 
-	claims, ok := token.Claims.(*RefreshTokenClaims)
-	if !ok || strings.Compare(claims.AccessPart, accessToken[:j.AccessPartLen]) != 0 || !token.Valid {
-		return logic.ErrInvalidRefreshToken
-	}
-
 	if errors.Is(parseErr, jwt.ErrTokenExpired) {
 		return logic.ErrExpiredRefreshToken
 	} else if parseErr != nil {
 		return parseErr
+	}
+
+	accessParts := strings.Split(accessToken,".")
+
+	if(len(accessParts) != 3){
+		return logic.ErrInvalidAccessToken
+	}
+
+	claims, ok := token.Claims.(*RefreshTokenClaims)
+	if !ok {
+		return logic.ErrInvalidRefreshToken
+	}
+
+	if strings.Compare(claims.AccessPart, accessParts[2][:j.AccessPartLen]) != 0{
+		return logic.ErrInvalidAccessToken
 	}
 
 	return nil

@@ -4,7 +4,6 @@ import (
 	"AuthService/internal/cases"
 	"AuthService/internal/logic/models"
 	"AuthService/internal/utils/errsutil"
-	"encoding/json"
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,7 +17,7 @@ type AuthorizeUserRequest struct {
 type AuthorizeUserResponses struct {
 	BaseResponse
 
-	Uuid string `json:"uuid"`
+	UserId string `json:"userId"`
 }
 
 func (a *Auth) GetAuthorizeUserHandler() fiber.Handler {
@@ -28,13 +27,13 @@ func (a *Auth) GetAuthorizeUserHandler() fiber.Handler {
 			resp AuthorizeUserResponses
 		)
 
-		unmarshErr := json.Unmarshal(c.Body(), &req)
+		unmarshErr := a.bodySerializer.Unmarshal(c.Body(), &req)
 
 		if unmarshErr != nil {
-			resp.Err = "unmarshal request error: " + unmarshErr.Error()
-			resp.ErrCode = errsutil.ErrInputCode
+			resp.Err = ErrInvalidInput.Error() + unmarshErr.Error()
+			resp.ErrCode = ErrInvalidInput.ErrorCode()
 
-			data, _ := json.Marshal(resp)
+			data, _ := a.bodySerializer.Marshal(resp)
 
 			c.Status(400).Write(data)
 			return nil
@@ -61,16 +60,16 @@ func (a *Auth) GetAuthorizeUserHandler() fiber.Handler {
 			resp.Err = errWithCode.Error()
 			resp.ErrCode = errWithCode.ErrorCode()
 
-			data, _ := json.Marshal(resp)
+			data, _ := a.bodySerializer.Marshal(resp)
 
 			c.Write(data)
 			return nil
 		}
 
-		resp.Uuid = returned.UserId
+		resp.UserId = returned.UserId
 		resp.ErrCode = errsutil.SuccessCode
 
-		data, _ := json.Marshal(resp)
+		data, _ := a.bodySerializer.Marshal(resp)
 
 		c.Status(200).Write(data)
 		return nil

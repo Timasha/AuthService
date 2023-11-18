@@ -12,7 +12,7 @@ type TokensProvider struct {
 	IntermediateTokenLifeTime int64
 }
 
-func New(accessTokenKey, refreshTokenKey string, accessTokenLifeTime, refreshTokenLifeTime int64, accessPartLen int) (t *TokensProvider) {
+func New(accessTokenKey, refreshTokenKey string, accessTokenLifeTime, refreshTokenLifeTime int64, accessPartLen int, intermediateTokenKey string, intermediateTokenLifeTime int64) (t *TokensProvider) {
 	t = &TokensProvider{
 		AccessTokenKey: accessTokenKey,
 		AccessTokenLifeTime: accessTokenLifeTime,
@@ -20,6 +20,9 @@ func New(accessTokenKey, refreshTokenKey string, accessTokenLifeTime, refreshTok
 		RefreshTokenKey: refreshTokenKey,
 		RefreshTokenLifeTime: refreshTokenLifeTime,
 		AccessPartLen: accessPartLen,
+
+		IntermediateTokenKey: intermediateTokenKey,
+		IntermediateTokenLifeTime: intermediateTokenLifeTime,
 	}
 	return
 }

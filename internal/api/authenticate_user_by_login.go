@@ -3,7 +3,6 @@ package api
 import (
 	"AuthService/internal/cases"
 	"AuthService/internal/utils/errsutil"
-	"encoding/json"
 	"errors"
 
 	"github.com/gofiber/fiber/v2"
@@ -33,13 +32,13 @@ func (a *Auth) GetAuthenticateUserByLoginHandler() fiber.Handler {
 			resp AuthenticateUserByLoginResponse
 		)
 
-		unmarshErr := json.Unmarshal(c.Request().Body(), &req)
+		unmarshErr := a.bodySerializer.Unmarshal(c.Request().Body(), &req)
 
 		if unmarshErr != nil {
-			resp.Err = "unmarshal request error: " + unmarshErr.Error()
-			resp.ErrCode = errsutil.ErrInputCode
+			resp.Err = ErrInvalidInput.Error() + unmarshErr.Error()
+			resp.ErrCode = ErrInvalidInput.ErrorCode()
 
-			data, _ := json.Marshal(resp)
+			data, _ := a.bodySerializer.Marshal(resp)
 
 			c.Status(400).Write(data)
 			return nil
@@ -66,7 +65,7 @@ func (a *Auth) GetAuthenticateUserByLoginHandler() fiber.Handler {
 			resp.Err = errWithCode.Error()
 			resp.ErrCode = errWithCode.ErrorCode()
 
-			data, _ := json.Marshal(resp)
+			data, _ := a.bodySerializer.Marshal(resp)
 
 			c.Write(data)
 			return nil
@@ -82,7 +81,7 @@ func (a *Auth) GetAuthenticateUserByLoginHandler() fiber.Handler {
 
 		resp.ErrCode = errsutil.SuccessCode
 
-		data, _ := json.Marshal(resp)
+		data, _ := a.bodySerializer.Marshal(resp)
 
 		c.Status(200).Write(data)
 

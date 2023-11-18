@@ -11,19 +11,28 @@ import (
 )
 
 type JSONConfig struct {
+	OrganizationName string `json:"organizationName"`
+
 	ApiPort string `json:"apiPort"`
 
 	MinLoginLen    int `json:"minLoginLen"`
 	MinPasswordLen int `json:"minPasswordLen"`
 
-	AccessTokenKey string `json:"accessTokenKey"`
+
 	// Lifetime in minutes
 	AccessTokenLifeTime int64 `json:"accessTokenLifeTime"`
+	AccessTokenKey string `json:"accessTokenKey"`
 
-	RefreshTokenKey string `json:"refreshTokenKey"`
+
 	// Lifetime in hours
 	RefreshTokenLifeTime int64 `json:"refreshTokenLifeTime"`
+	RefreshTokenKey string `json:"refreshTokenKey"`
 	AccessPartLen        int   `json:"accessPartLen"`
+
+	// Lifetime in minute
+	IntermediateTokenLifeTime int64 `json:"intermediateTokenLifetime"`
+	IntermediateTokenKey string `json:"intermediateTokenKey"`
+
 
 	PostgresConfig storage.PostgresStorageConfig `json:"postgresConfig,omitempty"`
 	MigrationsPath string                        `json:"migrationsPath"`
@@ -73,44 +82,40 @@ func ReadJsonConfig(path string, log logger.Logger) (*JSONConfig, error) {
 }
 
 func CheckConfigValues(config *JSONConfig, log logger.Logger) {
-	if len(config.AccessTokenKey) < 5 {
+	if len(config.AccessTokenKey) < 10 {
 		log.Log(logger.LogMsg{
 			Time:     time.Now(),
 			LogLevel: logger.LogLevelWarn,
 			Msg:      "Too short access token sign key. Not safe usage.",
 		})
 	}
-	if len(config.RefreshTokenKey) < 5 {
+	if len(config.RefreshTokenKey) < 10 {
 		log.Log(logger.LogMsg{
 			Time:     time.Now(),
 			LogLevel: logger.LogLevelWarn,
 			Msg:      "Too short refresh token sign key. Not safe usage.",
 		})
 	}
-
-	if time.Duration(config.AccessTokenLifeTime)*time.Minute < time.Hour {
+	if len(config.IntermediateTokenKey) < 10{
 		log.Log(logger.LogMsg{
-			Time:     time.Now(),
+			Time: time.Now(),
 			LogLevel: logger.LogLevelWarn,
-			Msg:      "Too short access token lifetime. Using default values.",
+			Msg: "Too short intermediate token sign key. Not safe usage.",
 		})
-		config.AccessTokenLifeTime = 60
 	}
-	if time.Duration(config.RefreshTokenLifeTime)*time.Hour < time.Hour*24 {
+	if (config.Roles == nil){
 		log.Log(logger.LogMsg{
-			Time:     time.Now(),
-			LogLevel: logger.LogLevelWarn,
-			Msg:      "Too short refresh token lifetime. Using default values.",
+			Time: time.Now(),
+			LogLevel: logger.LogLevelFatal,
+			Msg: "Cannot use auth service without any roles. Please use default config.",
 		})
-		config.RefreshTokenLifeTime = 24
 	}
 
 	if config.AccessPartLen < 5 {
 		log.Log(logger.LogMsg{
 			Time:     time.Now(),
 			LogLevel: logger.LogLevelWarn,
-			Msg:      "Too short access part length for creating refresh token. Using deault values.",
+			Msg:      "Too short access part length for creating refresh token. Not safe usage.",
 		})
-		config.AccessPartLen = 5
 	}
 }

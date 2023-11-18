@@ -73,6 +73,15 @@ func (p *PostgresStorage) GetUserByLogin(ctx context.Context, login string) (mod
 	return user, err
 }
 
+func (p *PostgresStorage) GetUserByUserId(ctx context.Context, userId string)(models.User,error){
+	var user models.User
+	err := p.Pool.QueryRow(ctx, "select users.UserId, users.Login, users.Password, users.OtpEnabled, users.OtpKey, roles.RoleId, roles.RoleName from users join roles on roles.RoleId = users.RoleId where UserId = $1;", userId).Scan(&(user.UserID), &(user.Login), &(user.Password), &(user.OtpEnabled), &(user.OtpKey), &(user.Role.RoleId), &(user.Role.RoleName))
+	if err == pgx.ErrNoRows {
+		return models.User{}, logic.ErrUserNotExists
+	}
+	return user, err
+}
+
 func (p *PostgresStorage) UpdateUserByLogin(ctx context.Context, login string, user models.User) error {
 	var retLogin string
 	err := p.Pool.QueryRow(ctx, "update users set UserId = $1, Login = $2, Password = $3, OtpEnabled = $4, OtpKey = $5 where Login = $6 returning Login;", user.UserID, user.Login, user.Password, user.OtpEnabled, user.OtpKey, login).Scan(&retLogin)

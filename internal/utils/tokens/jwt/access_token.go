@@ -36,17 +36,18 @@ func (j *TokensProvider) ValidAccessToken(strToken string) (string, error) {
 
 	if parseErr == jwtErrs.ErrWrongSingingMethod || errors.Is(parseErr, jwt.ErrTokenMalformed) || errors.Is(parseErr, jwt.ErrTokenSignatureInvalid) {
 		return "", logic.ErrInvalidAccessToken
-	} 
+	}else if parseErr != nil && !errors.Is(parseErr, jwt.ErrTokenExpired) {
+		return "", parseErr
+	}
+	
 
 	claims, ok := token.Claims.(*AccessTokenClaims)
-	if !ok || !token.Valid {
+	if !ok {
 		return "", logic.ErrInvalidAccessToken
 	}
 	
 	if errors.Is(parseErr, jwt.ErrTokenExpired) {
 		return claims.Login, logic.ErrExpiredAccessToken
-	} else if parseErr != nil {
-		return "", parseErr
 	}
 
 	

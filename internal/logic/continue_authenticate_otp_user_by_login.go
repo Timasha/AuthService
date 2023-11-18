@@ -38,6 +38,7 @@ func (l *LogicProvider) ContinueAuthenticateOtpUserByLogin(args ContinueAuthenti
 
 	if !l.otpGenerator.ValidOtp(args.OtpCode, user.OtpKey) {
 		returned.Err = ErrInvalidOtp
+		return
 	}
 
 	returned.AuthInfo.AccessToken, returned.AuthInfo.RefreshToken, returned.Err = l.tokensProvider.CreateTokens(login)
