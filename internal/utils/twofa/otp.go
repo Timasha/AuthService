@@ -7,6 +7,9 @@ type DefaultOtp struct{
 }
 
 func New(organizationName string) (d *DefaultOtp){
+	if organizationName == ""{
+		organizationName = "defaultOrganization"
+	}
 	return &DefaultOtp{
 		OrganizationName: organizationName,
 	}

@@ -29,7 +29,7 @@ func (a *Auth) GetAuthorizeMiddleware() fiber.Handler {
 			return nil 
 		}
 
-		authorizeHeader := strings.Split(authHeader, " ")
+		authorizeHeader := strings.Split(authHeader[0], " ")
 		if len(authorizeHeader) != 2 || authorizeHeader[0] != "Bearer" {
 			err := ErrWrongAuthorizationMethod
 			resp.Err = err.Error()
