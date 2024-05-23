@@ -1,0 +1,87 @@
+// protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative auth.proto
+
+syntax = "proto3";
+
+package auth;
+
+option go_package = "gitlab.com/Timasha/AuthService/pkg/api";
+
+import "google/protobuf/empty.proto";
+
+service Auth{
+  rpc AuthenticateUserByLogin(AuthenticateUserByLoginRequest) returns (AuthenticateUserByLoginResponse);
+  rpc ContinueAuthenticateOtpUser(ContinueAuthenticateOtpUserByLoginRequest) returns (ContinueAuthenticateOtpUserByLoginResponse);
+  rpc Register(RegisterUserRequest) returns (google.protobuf.Empty);
+  rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse);
+  rpc RefreshTokens(RefreshTokensRequest) returns (RefreshTokensResponse);
+
+  rpc EnableOtpAuthentication(google.protobuf.Empty) returns (EnableOtpAuthenticationResponse);
+  rpc DisableOtpAuthentication(google.protobuf.Empty) returns (google.protobuf.Empty);
+}
+
+// Common
+message TokenPair {
+  string AccessToken = 1;
+  string RefreshToken = 2;
+}
+//
+
+
+message AuthenticateUserByLoginRequest{
+  string login = 1;
+  string password = 2;
+}
+
+message AuthenticateUserByLoginResponse{
+  bool otpEnabled = 1;
+
+  optional string intermediateToken = 2;
+
+  optional TokenPair tokenPair = 3;
+}
+
+
+
+message ContinueAuthenticateOtpUserByLoginRequest{
+  string intermediateToken = 1;
+  string otpCode = 2;
+}
+
+message ContinueAuthenticateOtpUserByLoginResponse{
+  TokenPair tokenPair = 1;
+}
+
+
+
+message RegisterUserRequest{
+  string login = 1;
+  string password = 2;
+}
+
+
+
+message AuthorizeRequest {
+  string accessToken = 1;
+  bytes requiredRoleAccess = 2;
+}
+
+message AuthorizeResponse {
+  int64 userID = 1;
+}
+
+
+
+message RefreshTokensRequest{
+  TokenPair tokenPair = 1;
+}
+
+message RefreshTokensResponse{
+  TokenPair tokenPair = 1;
+}
+
+
+
+message EnableOtpAuthenticationResponse{
+  string otpKey = 1;
+  string otpUrl = 2;
+}

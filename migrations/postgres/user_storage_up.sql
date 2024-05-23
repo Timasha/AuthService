@@ -1,8 +1,8 @@
 create table if not exists users (
-    UserId text PRIMARY KEY,
-    Login text UNIQUE,
-    Password text,
-    OtpEnabled boolean,
-    OtpKey text,
-    RoleId bigserial REFERENCES roles (RoleId)
+    user_id integer PRIMARY KEY,
+    login text UNIQUE,
+    password text,
+    otp_enabled boolean,
+    otp_key text,
+    role_id bigserial REFERENCES roles (role_id)
 );

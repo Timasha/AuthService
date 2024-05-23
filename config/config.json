@@ -1,0 +1,42 @@
+{
+  "Server": {
+    "Host": "0.0.0.0:5000",
+    "StartTimeout": 10,
+    "StopTimeout"       : 10,
+    "MaxConnectionIdle" :10,
+    "Timeout"           : 10,
+    "MaxConnectionAge"  :10,
+    "Time"              : 10
+  },
+  "Middleware": {
+    "AuthForMethods": []
+  },
+
+  "UseCase": {
+    "LoginRegexp": "",
+    "PasswordRegexp": ""
+  },
+
+  "Tokens": {
+    "AccessTokenKey"      : "key",
+    "AccessTokenLifeTime": 30,
+
+    "RefreshTokenKey": "key",
+    "RefreshTokenLifeTime": 168,
+    "AccessPartLen": 5,
+
+    "IntermediateTokenKey": "key",
+    "IntermediateTokenLifeTime": 10
+  },
+
+  "TwoFA": {
+    "OrganizationName": "sample org"
+  },
+
+  "Postgres": {
+    "Login": "some_user",
+    "Password": "some_password",
+    "IP": "db",
+    "Port": "5432"
+  }
+}

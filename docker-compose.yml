@@ -1,14 +1,14 @@
 version: '3'
 
-
 services:
   auth:
     build: ./
     ports:
-      - "8080:8080"
-      - "8000-8050:8080"
+      - "5000:5000"
     depends_on:
       - db
+    environment:
+      - CONFIG=./config/config.json
   db:
     container_name: db
     image: postgres
