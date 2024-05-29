@@ -30,4 +30,4 @@ jobs:
     - name: Run
       run: make run
       with:
-          environment: ${{ github.event.inputs.environment }}
+        environment: ${{ github.event.inputs.environment }}
