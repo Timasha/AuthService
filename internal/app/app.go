@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"github.com/Timasha/AuthService/internal/storage"
 	"os"
 	"time"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/Timasha/AuthService/utils/config"
 	"github.com/Timasha/AuthService/utils/grpcserver"
 	"github.com/Timasha/AuthService/utils/password"
-	"github.com/Timasha/AuthService/utils/storage"
 	"github.com/Timasha/AuthService/utils/tokens/jwt"
 	"github.com/Timasha/AuthService/utils/twofa"
 	"github.com/Timasha/AuthService/utils/uuid"
@@ -26,9 +26,9 @@ type Lifecycle interface {
 type (
 	App struct {
 		cfg  config.Config
-		cmps []cmp
+		cmps []component
 	}
-	cmp struct {
+	component struct {
 		Service Lifecycle
 		Name    string
 	}
@@ -61,7 +61,7 @@ func (a *App) Start(ctx context.Context) error {
 
 	server := grpcserver.New(a.cfg.Server, api, middleware)
 
-	a.cmps = []cmp{
+	a.cmps = []component{
 		{postgresStorage, "postgres storage"},
 		{server, "grpc server"},
 	}

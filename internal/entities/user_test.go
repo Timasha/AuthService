@@ -6,16 +6,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type UserValidateTestCase struct {
+type userCheckTestCase struct {
 	name      string
 	user      *User
 	givenUser *User
 	want      bool
 }
 
-func TestUserValidate(t *testing.T) {
+func TestUserCheck(t *testing.T) {
 	t.Parallel()
-	testCases := []UserValidateTestCase{
+	testCases := []userCheckTestCase{
 		{
 			name: "Valid user",
 			user: &User{
@@ -27,6 +27,18 @@ func TestUserValidate(t *testing.T) {
 				Password: "password",
 			},
 			want: true,
+		},
+		{
+			name: "invalid user",
+			user: &User{
+				Login:    "login",
+				Password: "password",
+			},
+			givenUser: &User{
+				Login:    "login",
+				Password: "password1",
+			},
+			want: false,
 		},
 	}
 

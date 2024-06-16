@@ -4,16 +4,15 @@ import (
 	"context"
 	"errors"
 
-	"github.com/Timasha/AuthService/internal/entities"
 	"github.com/Timasha/AuthService/pkg/errlist"
 )
 
 type RefreshTokensRequest struct {
-	TokenPair entities.TokenPair
+	TokenPair TokenPair
 }
 
 type RefreshTokensResponse struct {
-	TokenPair entities.TokenPair
+	TokenPair TokenPair
 }
 
 func (c *Provider) RefreshTokens(

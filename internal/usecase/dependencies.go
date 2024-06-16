@@ -27,7 +27,7 @@ type (
 		create refresh token based on access,
 		generate error if it was caused by something
 		and return these values */
-		CreateTokens(login string) (tokenPair entities.TokenPair, err error)
+		CreateTokens(login string) (tokenPair TokenPair, err error)
 
 		/*ValidAccessToken should valid access token by checking if that is expired
 		or invalid by structure and return login and error*/
@@ -36,7 +36,7 @@ type (
 		/*ValidRefreshToken should valid refresh token by checking if it is expired,
 		check relation with access token,
 		and return error if it was caused by something*/
-		ValidRefreshToken(tokenPair entities.TokenPair) (err error)
+		ValidRefreshToken(tokenPair TokenPair) (err error)
 
 		CreateIntermediateToken(login string) (token string, err error)
 

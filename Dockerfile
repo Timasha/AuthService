@@ -1,12 +1,14 @@
-FROM golang:1.22 AS BUILD
+FROM golang:1.22 AS DEPS
 
 WORKDIR /build
 
 COPY . .
 
-#RUN go mod download
-#
-#RUN go build -o /build/main ./cmd/main.go
+RUN go mod download
+
+FROM DEPS AS BUILD
+
+RUN go build -o /build/main ./cmd/main.go
 
 FROM ubuntu
 

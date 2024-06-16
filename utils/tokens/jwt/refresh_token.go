@@ -2,12 +2,12 @@ package jwt
 
 import (
 	"errors"
+	"github.com/Timasha/AuthService/internal/usecase"
 	"strings"
 	"time"
 
 	"github.com/Timasha/AuthService/utils/consts"
 
-	"github.com/Timasha/AuthService/internal/entities"
 	"github.com/Timasha/AuthService/pkg/errlist"
 	jwtErrs "github.com/Timasha/AuthService/utils/tokens/jwt/errs"
 
@@ -31,7 +31,7 @@ func (tp *TokensProvider) CreateRefreshToken(accessToken string) (string, error)
 	return token.SignedString([]byte(tp.cfg.RefreshTokenKey))
 }
 
-func (tp *TokensProvider) ValidRefreshToken(tokenPair entities.TokenPair) error {
+func (tp *TokensProvider) ValidRefreshToken(tokenPair usecase.TokenPair) error {
 	token, parseErr := jwt.ParseWithClaims(
 		tokenPair.RefreshToken,
 		&RefreshTokenClaims{},

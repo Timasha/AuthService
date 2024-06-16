@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 
-	"github.com/Timasha/AuthService/internal/entities"
 	"github.com/Timasha/AuthService/pkg/errlist"
 )
 
@@ -13,7 +12,7 @@ type ContinueAuthenticateOtpUserByLoginRequest struct {
 }
 
 type ContinueAuthenticateOtpUserByLoginResponse struct {
-	TokenPair entities.TokenPair
+	TokenPair TokenPair
 }
 
 func (c *Provider) ContinueAuthenticateOtpUserByLogin(

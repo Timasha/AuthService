@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type RoleTestCase struct {
+type roleTestCase struct {
 	name       string
 	role       entities.Role
 	required   entities.RoleAccess
@@ -17,7 +17,7 @@ type RoleTestCase struct {
 
 func TestRoleHaveAccess(t *testing.T) {
 	t.Parallel()
-	testCases := []RoleTestCase{
+	testCases := []roleTestCase{
 		{
 			"Exact access",
 			entities.Role{

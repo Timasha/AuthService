@@ -24,7 +24,7 @@ type AuthenticateUserByLoginResponse struct {
 
 	IntermediateToken *string
 
-	TokenPair *entities.TokenPair
+	TokenPair *TokenPair
 }
 
 func (c *Provider) AuthenticateUserByLogin(

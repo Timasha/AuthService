@@ -1,6 +1,8 @@
 package jwt
 
-import "github.com/Timasha/AuthService/internal/entities"
+import (
+	"github.com/Timasha/AuthService/internal/usecase"
+)
 
 type TokensProvider struct {
 	cfg Config
@@ -16,7 +18,7 @@ func New(
 	return
 }
 
-func (tp *TokensProvider) CreateTokens(login string) (tokenPair entities.TokenPair, err error) {
+func (tp *TokensProvider) CreateTokens(login string) (tokenPair usecase.TokenPair, err error) {
 	accessToken, err := tp.CreateAccessToken(login)
 	if err != nil {
 		return tokenPair, err
@@ -27,7 +29,7 @@ func (tp *TokensProvider) CreateTokens(login string) (tokenPair entities.TokenPa
 		return tokenPair, err
 	}
 
-	tokenPair = entities.TokenPair{
+	tokenPair = usecase.TokenPair{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}

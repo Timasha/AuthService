@@ -18,6 +18,9 @@ var (
 		api.Auth_EnableOtpAuthentication_FullMethodName,
 		api.Auth_DisableOtpAuthentication_FullMethodName,
 	}
+)
+
+var (
 	RootRole = entities.Role{
 		ID:     0,
 		Access: nil,
@@ -25,7 +28,7 @@ var (
 	}
 	DefaultRole = entities.Role{
 		ID:     1,
-		Access: []byte{0},
+		Access: entities.RoleAccess{0},
 		Name:   "user",
 	}
 )
