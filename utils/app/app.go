@@ -23,7 +23,7 @@ func Run(a App) error {
 		return err
 	}
 
-	quitCh := make(chan os.Signal)
+	quitCh := make(chan os.Signal, 1)
 	signal.Notify(quitCh, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	<-quitCh
 

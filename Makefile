@@ -3,7 +3,7 @@ compileProto:
 build:
 	go build cmd/main.go
 lint:
-	golangci-lint run --fix -v --config golangci.yml
+	golangci-lint run -v --config golangci.yml
 run:
 	docker-compose build && docker-compose up
 test:

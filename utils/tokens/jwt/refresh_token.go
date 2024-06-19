@@ -2,13 +2,12 @@ package jwt
 
 import (
 	"errors"
-	"github.com/Timasha/AuthService/internal/usecase"
 	"strings"
 	"time"
 
-	"github.com/Timasha/AuthService/utils/consts"
-
+	"github.com/Timasha/AuthService/internal/usecase"
 	"github.com/Timasha/AuthService/pkg/errlist"
+	"github.com/Timasha/AuthService/utils/consts"
 	jwtErrs "github.com/Timasha/AuthService/utils/tokens/jwt/errs"
 
 	"github.com/golang-jwt/jwt/v5"

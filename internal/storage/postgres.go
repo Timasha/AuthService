@@ -14,6 +14,8 @@ import (
 	"github.com/Timasha/AuthService/pkg/errlist"
 	"github.com/Timasha/AuthService/utils/consts"
 	"github.com/gofiber/fiber/v2/log"
+
+	//nolint:revive // it's ok
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 )

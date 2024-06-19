@@ -2,11 +2,11 @@ package app
 
 import (
 	"context"
-	"github.com/Timasha/AuthService/internal/storage"
 	"os"
 	"time"
 
 	"github.com/Timasha/AuthService/internal/api/grpc"
+	"github.com/Timasha/AuthService/internal/storage"
 	"github.com/Timasha/AuthService/internal/usecase"
 	"github.com/Timasha/AuthService/utils/config"
 	"github.com/Timasha/AuthService/utils/grpcserver"
@@ -14,6 +14,7 @@ import (
 	"github.com/Timasha/AuthService/utils/tokens/jwt"
 	"github.com/Timasha/AuthService/utils/twofa"
 	"github.com/Timasha/AuthService/utils/uuid"
+
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/rs/zerolog"
 )

@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Timasha/AuthService/internal/storage"
 	"io"
 	"os"
+
+	"github.com/Timasha/AuthService/internal/storage"
 
 	api "github.com/Timasha/AuthService/internal/api/grpc"
 	"github.com/Timasha/AuthService/internal/usecase"
