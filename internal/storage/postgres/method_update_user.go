@@ -17,7 +17,7 @@ const (
 	    otp_enabled = $6,
 	    otp_key = $7,
 	    role_id = $8
-	where login = $1 || id = $2
+	where login = $1 or id = $2
 	returning 1
 `
 )
