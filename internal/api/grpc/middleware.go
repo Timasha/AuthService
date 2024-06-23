@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"github.com/Timasha/AuthService/internal/entities"
 	"slices"
 	"strings"
 
@@ -62,7 +63,7 @@ func (m *Middleware) Auth(
 
 	ret, err := m.uc.AuthorizeUser(ctx, usecase.AuthorizeUserRequest{
 		AccessToken:        authorizeHeaderParts[1],
-		RequiredRoleAccess: nil,
+		RequiredRoleAccess: entities.RoleAccess{0},
 	})
 	if err != nil {
 		return resp, err
