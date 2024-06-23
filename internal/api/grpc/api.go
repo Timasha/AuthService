@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"github.com/Timasha/AuthService/pkg/errlist"
 
 	"github.com/Timasha/AuthService/internal/usecase"
 	"github.com/Timasha/AuthService/pkg/api"
@@ -100,8 +101,7 @@ func (a *API) EnableOtpAuthentication(
 
 	userID, ok := ctx.Value("user_id").(*int64)
 	if !ok || userID == nil {
-		//TODO: return error
-		return
+		return resp, errlist.ErrUnauthorized
 	}
 
 	ucResp, err := a.uc.EnableOtpAuthentication(ctx, usecase.EnableOtpAuthenticationRequest{
@@ -121,8 +121,7 @@ func (a *API) DisableOtpAuthentication(ctx context.Context, _ *emptypb.Empty) (r
 
 	userID, ok := ctx.Value("user_id").(*int64)
 	if !ok || userID == nil {
-		//TODO: return error
-		return
+		return resp, errlist.ErrUnauthorized
 	}
 
 	err = a.uc.DisableOtpAuthentication(ctx, usecase.DisableOtpAuthenticationRequest{

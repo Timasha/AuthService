@@ -8,6 +8,7 @@ import (
 	"github.com/Timasha/AuthService/internal/usecase"
 	"github.com/Timasha/AuthService/pkg/errlist"
 	"github.com/Timasha/AuthService/utils/consts"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"

@@ -6,7 +6,7 @@ const (
 	ErrServiceNotAvaliableCode
 )
 const (
-	ErrExpiredAccessTokenCode int64 = iota + 101
+	ErrExpiredAccessTokenCode int64 = iota + 1001
 	ErrExpiredRefreshTokenCode
 	ErrExpiredIntermediateTokenCode
 	ErrInvalidPasswordCode
@@ -23,11 +23,12 @@ const (
 	ErrOtpAlreadyDisabledCode
 	ErrCantScanRoleIDCode
 	ErrWrongAuthorizationMethodCode
+	ErrUnauthorizedCode
 )
 const (
-	ErrInvalidLoginOrPasswordCode int64 = iota + 201
+	ErrInvalidLoginOrPasswordCode int64 = iota + 2001
 	ErrTooShortLoginOrPasswordCode
 )
 const (
-	ErrInvalidInputCode int64 = iota + 301
+	ErrInvalidInputCode int64 = iota + 3001
 )

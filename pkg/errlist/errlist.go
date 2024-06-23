@@ -117,4 +117,9 @@ var (
 		ErrWrongAuthorizationMethodCode,
 		errs.StatusBadRequest,
 	)
+
+	ErrUnauthorized = errs.New(
+		"user unauthorized",
+		ErrUnauthorizedCode,
+	)
 )
