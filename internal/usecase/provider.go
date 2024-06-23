@@ -15,7 +15,8 @@ type Provider struct {
 	otpGenerator   OtpGenerator
 }
 
-func New(cfg Config,
+func New(
+	cfg Config,
 	logger zerolog.Logger,
 	userStorage UserStorage,
 	rolesStorage RolesStorage,
