@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Timasha/AuthService/internal/storage/postgres"
 	"io"
 	"os"
-
-	"github.com/Timasha/AuthService/internal/storage"
 
 	api "github.com/Timasha/AuthService/internal/api/grpc"
 	"github.com/Timasha/AuthService/internal/usecase"
@@ -28,7 +27,7 @@ type Config struct {
 
 	TwoFA twofa.Config `validate:"required"`
 
-	Postgres storage.PostgresStorageConfig `validate:"required"`
+	Postgres postgres.PostgresStorageConfig `validate:"required"`
 }
 
 func ReadConfigJSON(path string) (cfg *Config, err error) {

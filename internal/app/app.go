@@ -2,11 +2,11 @@ package app
 
 import (
 	"context"
+	"github.com/Timasha/AuthService/internal/storage/postgres"
 	"os"
 	"time"
 
 	"github.com/Timasha/AuthService/internal/api/grpc"
-	"github.com/Timasha/AuthService/internal/storage"
 	"github.com/Timasha/AuthService/internal/usecase"
 	"github.com/Timasha/AuthService/utils/config"
 	"github.com/Timasha/AuthService/utils/grpcserver"
@@ -40,10 +40,10 @@ func New(cfg config.Config) *App {
 }
 
 func (a *App) Start(ctx context.Context) error {
-	log.Info("Start application")
+	log.Info("Starting application")
 
 	tokensProvider := jwt.New(a.cfg.Tokens)
-	postgresStorage := storage.NewPostgresStorage(a.cfg.Postgres)
+	postgresStorage := postgres.NewPostgresStorage(a.cfg.Postgres)
 	otp := twofa.New(a.cfg.TwoFA)
 
 	uc := usecase.New(
@@ -57,8 +57,8 @@ func (a *App) Start(ctx context.Context) error {
 		otp,
 	)
 
-	api := grpc.NewAPI(uc)
 	middleware := grpc.NewMiddleware(a.cfg.Middleware, uc)
+	api := grpc.NewAPI(uc)
 
 	server := grpcserver.New(a.cfg.Server, api, middleware)
 
