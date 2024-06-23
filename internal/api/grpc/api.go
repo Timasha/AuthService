@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"github.com/Timasha/AuthService/pkg/errlist"
+	"github.com/Timasha/AuthService/utils/consts"
 
 	"github.com/Timasha/AuthService/internal/usecase"
 	"github.com/Timasha/AuthService/pkg/api"
@@ -99,7 +100,7 @@ func (a *API) EnableOtpAuthentication(
 ) (resp *api.EnableOtpAuthenticationResponse, err error) {
 	resp = new(api.EnableOtpAuthenticationResponse)
 
-	userID, ok := ctx.Value("user_id").(*int64)
+	userID, ok := ctx.Value(consts.UserIDCtxKey).(*int64)
 	if !ok || userID == nil {
 		return resp, errlist.ErrUnauthorized
 	}
@@ -119,7 +120,7 @@ func (a *API) EnableOtpAuthentication(
 func (a *API) DisableOtpAuthentication(ctx context.Context, _ *emptypb.Empty) (resp *emptypb.Empty, err error) {
 	resp = new(emptypb.Empty)
 
-	userID, ok := ctx.Value("user_id").(*int64)
+	userID, ok := ctx.Value(consts.UserIDCtxKey).(*int64)
 	if !ok || userID == nil {
 		return resp, errlist.ErrUnauthorized
 	}
