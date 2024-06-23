@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Timasha/AuthService/internal/entities"
 	"github.com/Timasha/AuthService/pkg/errlist"
+	"github.com/Timasha/AuthService/utils/pgx"
 )
 
 const (
@@ -14,9 +15,9 @@ const (
 )
 
 func (p *PostgresStorage) CreateRole(ctx context.Context, role entities.Role) (err error) {
-	row, err := p.conn.NamedExecContext(ctx, queryCreateRole, role)
-	if rowsAff, rowsAffErr := row.RowsAffected(); rowsAff != 1 || rowsAffErr != nil {
-		return errlist.ErrUserAlreadyExists
+	_, err = p.conn.NamedExecContext(ctx, queryCreateRole, role)
+	if pgx.CheckAlreadyExists(err) {
+		return errlist.ErrRoleAlreadyExists
 	}
 
 	if err != nil {
